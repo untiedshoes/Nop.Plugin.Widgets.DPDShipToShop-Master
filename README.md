@@ -1,4 +1,4 @@
-Project using the DPD Ship to Shop API to create a plugin for nopCommerce 4.30.
+Project using the DPD Ship to Shop API to create a plugin for nopCommerce 4.50.
 
 This version has everything contained within the plugin, leaving the nopCommerce source code without any changes.
 
