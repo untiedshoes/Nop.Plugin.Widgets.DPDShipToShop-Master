@@ -1,0 +1,149 @@
+﻿@inject Nop.Core.Domain.Common.AdminAreaSettings adminAreaSettings
+@model Nop.Plugin.Widgets.DPDShipToShop.Models.ConfigurationModel
+
+@inject Nop.Core.IWebHelper webHelper
+
+@using Nop.Plugin.Widgets.DPDShipToShop.Models;
+
+@{
+    Layout = "_AdminLayout";
+    NopHtml.SetActiveMenuItemSystemName("DPDShiptoShop.Configure");
+}
+
+@await Component.InvokeAsync("StoreScopeConfiguration")
+
+<form asp-controller="DPDShipToShop" asp-action="Configure" method="post">
+
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        @T("Plugins.Widgets.DPDShipToShop.Blocktitle")
+                        @T("Plugins.Widgets.DPDShipToShop.Instructions")
+                        <p>
+                            @if (Model.IsRegisted == true)
+                            {
+                                <text>You are using a registered version.</text>
+                            }
+                            else
+                            {
+                                <text>You are using an unregistered version.</text>
+                                <br />
+                                <a href="#" target="blank">Buy It Now</a>
+                            }
+                        </p>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="PluginEnabled" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="PluginEnabled" />
+                                @Html.ValidationMessageFor(model => model.PluginEnabled)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="UserName" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="UserName" />
+                                @Html.ValidationMessageFor(model => model.UserName)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="Password" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="Password" />
+                                @Html.ValidationMessageFor(model => model.Password)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="AccountNumber" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="AccountNumber" />
+                                @Html.ValidationMessageFor(model => model.AccountNumber)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="DPDBaseURL" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="DPDBaseURL" />
+                                @Html.ValidationMessageFor(model => model.DPDBaseURL)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="ShippingMethodName" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="ShippingMethodName" />
+                                @Html.ValidationMessageFor(model => model.ShippingMethodName)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="GoogleMapsApiKey" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="GoogleMapsApiKey" />
+                                @Html.ValidationMessageFor(model => model.GoogleMapsApiKey)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="UseGoogleAutoComplete" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="UseGoogleAutoComplete" />
+                                @Html.ValidationMessageFor(model => model.UseGoogleAutoComplete)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="StoreUrl" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="StoreUrl" asp-disabled="true" />
+                                @Html.ValidationMessageFor(model => model.StoreUrl)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="SerialNumber" />
+                            </div>
+                            <div class="col-md-6">
+                                <nop-editor asp-for="SerialNumber" />
+                                @Html.ValidationMessageFor(model => model.SerialNumber)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                &nbsp;
+                            </div>
+                            <div class="col-md-9">
+                                <input type="submit" name="save" class="btn bg-blue" value="@T("Admin.Common.Save")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</form>

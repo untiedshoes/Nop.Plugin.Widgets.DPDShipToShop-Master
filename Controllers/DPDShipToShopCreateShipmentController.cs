@@ -1,0 +1,221 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Nop.Core;
+using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
+using Nop.Plugin.Widgets.DPDShipToShop.Factories;
+using Nop.Plugin.Widgets.DPDShipToShop.Models;
+using Nop.Services.Catalog;
+using Nop.Services.Common;
+using Nop.Services.Customers;
+using Nop.Services.ExportImport;
+using Nop.Services.Helpers;
+using Nop.Services.Localization;
+using Nop.Services.Logging;
+using Nop.Services.Media;
+using Nop.Services.Messages;
+using Nop.Services.Orders;
+using Nop.Services.Payments;
+using Nop.Services.Security;
+using Nop.Services.Shipping;
+using Nop.Web.Areas.Admin.Factories;
+using Nop.Web.Framework;
+using Nop.Web.Framework.Controllers;
+using Nop.Web.Framework.Mvc.Filters;
+
+namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
+{
+    
+    public class DPDShipToShopCreateShipmentController : BasePluginController
+    {
+        #region Fields
+
+        private readonly IAddressAttributeParser _addressAttributeParser;
+        private readonly IAddressService _addressService;
+        private readonly ICustomerActivityService _customerActivityService;
+        private readonly ICustomerService _customerService;
+        private readonly IDateTimeHelper _dateTimeHelper;
+        private readonly IDownloadService _downloadService;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IExportManager _exportManager;
+        private readonly IGiftCardService _giftCardService;
+        private readonly ILocalizationService _localizationService;
+        private readonly INotificationService _notificationService;
+        private readonly IOrderModelFactory _orderModelFactory;
+        private readonly IOrderProcessingService _orderProcessingService;
+        private readonly IOrderService _orderService;
+        private readonly IPaymentService _paymentService;
+        private readonly IPdfService _pdfService;
+        private readonly IPermissionService _permissionService;
+        private readonly IPriceCalculationService _priceCalculationService;
+        private readonly IProductAttributeFormatter _productAttributeFormatter;
+        private readonly IProductAttributeParser _productAttributeParser;
+        private readonly IProductAttributeService _productAttributeService;
+        private readonly IProductService _productService;
+        private readonly IShipmentService _shipmentService;
+        private readonly IShippingService _shippingService;
+        private readonly IShoppingCartService _shoppingCartService;
+        private readonly IWorkContext _workContext;
+        private readonly IWorkflowMessageService _workflowMessageService;
+        private readonly OrderSettings _orderSettings;
+        private readonly IDPDShipToShopModelFactory _DPDShipToShopModelFactory;
+        private readonly ILogger _logger;
+        #endregion
+
+        #region Ctor
+
+        public DPDShipToShopCreateShipmentController(IAddressAttributeParser addressAttributeParser,
+            IAddressService addressService,
+            ICustomerActivityService customerActivityService,
+            ICustomerService customerService,
+            IDateTimeHelper dateTimeHelper,
+            IDownloadService downloadService,
+            IEncryptionService encryptionService,
+            IExportManager exportManager,
+            IGiftCardService giftCardService,
+            ILocalizationService localizationService,
+            INotificationService notificationService,
+            IOrderModelFactory orderModelFactory,
+            IOrderProcessingService orderProcessingService,
+            IOrderService orderService,
+            IPaymentService paymentService,
+            IPdfService pdfService,
+            IPermissionService permissionService,
+            IPriceCalculationService priceCalculationService,
+            IProductAttributeFormatter productAttributeFormatter,
+            IProductAttributeParser productAttributeParser,
+            IProductAttributeService productAttributeService,
+            IProductService productService,
+            IShipmentService shipmentService,
+            IShippingService shippingService,
+            IShoppingCartService shoppingCartService,
+            IWorkContext workContext,
+            IWorkflowMessageService workflowMessageService,
+            OrderSettings orderSettings,
+            IDPDShipToShopModelFactory DPDShipToShopModelFactory,
+            ILogger logger)
+        {
+            _addressAttributeParser = addressAttributeParser;
+            _addressService = addressService;
+            _customerActivityService = customerActivityService;
+            _customerService = customerService;
+            _dateTimeHelper = dateTimeHelper;
+            _downloadService = downloadService;
+            _encryptionService = encryptionService;
+            _exportManager = exportManager;
+            _giftCardService = giftCardService;
+            _localizationService = localizationService;
+            _notificationService = notificationService;
+            _orderModelFactory = orderModelFactory;
+            _orderProcessingService = orderProcessingService;
+            _orderService = orderService;
+            _paymentService = paymentService;
+            _pdfService = pdfService;
+            _permissionService = permissionService;
+            _priceCalculationService = priceCalculationService;
+            _productAttributeFormatter = productAttributeFormatter;
+            _productAttributeParser = productAttributeParser;
+            _productAttributeService = productAttributeService;
+            _productService = productService;
+            _shipmentService = shipmentService;
+            _shippingService = shippingService;
+            _shoppingCartService = shoppingCartService;
+            _workContext = workContext;
+            _workflowMessageService = workflowMessageService;
+            _orderSettings = orderSettings;
+            _DPDShipToShopModelFactory = DPDShipToShopModelFactory;
+            _logger = logger;
+        }
+
+        #endregion
+
+        #region Utilities
+
+        protected virtual bool HasAccessToOrder(Order order)
+        {
+            return order != null && HasAccessToOrder(order.Id);
+        }
+
+        protected virtual bool HasAccessToOrder(int orderId)
+        {
+            if (orderId == 0)
+                return false;
+
+            if (_workContext.GetCurrentVendorAsync().Result == null)
+                //not a vendor; has access
+                return true;
+
+            var vendorId = _workContext.GetCurrentVendorAsync().Id;
+            var hasVendorProducts = _orderService.GetOrderItemsAsync(orderId, vendorId: vendorId).Result.Any();
+
+            return hasVendorProducts;
+        }
+
+        protected virtual bool HasAccessToProduct(OrderItem orderItem)
+        {
+            if (orderItem == null || orderItem.ProductId == 0)
+                return false;
+
+            if (_workContext.GetCurrentVendorAsync().Result == null)
+                //not a vendor; has access
+                return true;
+
+            var vendorId = _workContext.GetCurrentVendorAsync().Result.Id;
+
+            return _productService.GetProductByIdAsync(orderItem.ProductId).Result?.VendorId == vendorId;
+        }
+
+        protected virtual bool HasAccessToShipment(Shipment shipment)
+        {
+            if (shipment == null)
+                throw new ArgumentNullException(nameof(shipment));
+
+            if (_workContext.GetCurrentVendorAsync().Result == null)
+                //not a vendor; has access
+                return true;
+
+            return HasAccessToOrder(shipment.OrderId);
+        }
+
+        protected async virtual Task LogEditOrder(int orderId)
+        {
+            var order = _orderService.GetOrderByIdAsync(orderId).Result;
+
+            await _customerActivityService.InsertActivityAsync("EditOrder",
+                string.Format(await _localizationService.GetResourceAsync("ActivityLog.EditOrder"), order.CustomOrderNumber), order);
+        }
+
+        #endregion
+
+        #region Shipments
+
+        [Area(AreaNames.Admin)]
+        public async virtual Task<IActionResult> AddDPDShipment(int id)
+        {
+            if (!_permissionService.AuthorizeAsync(StandardPermissionProvider.ManageOrders).Result)
+                return AccessDeniedView();
+
+            await _logger.InformationAsync("Order ID:"+ id);
+
+            //try to get an order with the specified id
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+                return RedirectToAction("List");
+
+            //a vendor should have access only to his products
+            if (_workContext.GetCurrentVendorAsync().Result != null && !HasAccessToOrder(order))
+                return RedirectToAction("List");
+
+            //prepare model
+            var model = _DPDShipToShopModelFactory.PrepareDPDShipmentModel(new DPDShipmentModel(), null, order);
+
+            return View("~/Plugins/Widgets.DPDShipToShop/Views/DPDAddShipment.cshtml", model);
+        }
+
+        #endregion
+    }
+}

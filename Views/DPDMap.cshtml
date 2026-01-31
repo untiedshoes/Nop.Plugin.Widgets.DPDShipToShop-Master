@@ -1,0 +1,202 @@
+﻿@model Nop.Plugin.Widgets.DPDShipToShop.Models.PublicInfoModel
+@using Microsoft.AspNetCore.Mvc.Infrastructure;
+@using Microsoft.AspNetCore.Mvc.Routing;
+@using System;
+@using System.Web;
+@using System.IO;
+
+@{
+    Layout = "";
+
+    //Loading js file
+    //NopHtml.AddScriptParts(ResourceLocation.Footer, "~/Plugins/Widgets.DPDShipToShop/Scripts/app.js", excludeFromBundle: true);
+    //NopHtml.AddScriptParts(ResourceLocation.Footer, "~/Plugins/Widgets.DPDShipToShop/Scripts/plugins.js", excludeFromBundle: true);
+    //Loading CSS file
+    //NopHtml.AddCssFileParts("~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/Styles.css", excludeFromBundle: true);
+    //NopHtml.AddCssFileParts("~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/PickupShowpickuplocationsranked.css", excludeFromBundle: true);
+    //NopHtml.AddCssFileParts("~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/app.css", excludeFromBundle: true);
+}
+
+<!link rel="stylesheet" href="/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/Styles.css" />
+<!link rel="stylesheet" href="/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/PickupShowpickuplocationsranked.css" />
+<!link rel="stylesheet" href="/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/app.css" />
+<!script asp-exclude-from-bundle="true" src="/Plugins/Widgets.DPDShipToShop/Scripts/app.js" asp-location="Footer"></!script>
+<!script asp-exclude-from-bundle="true" src="/Plugins/Widgets.DPDShipToShop/Scripts/plugins.js" asp-location="Footer"></!script>
+
+@*<script src="~/Plugins/Widgets.DPDShipToShop/Scripts/app.js" asp-location="Footer"></script>
+<script src="~/Plugins/Widgets.DPDShipToShop/Scripts/plugins.js" asp-location="Footer"></script>
+<link href="~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/Styles.css" rel="stylesheet" type="text/css">
+<link href="~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/PickupShowpickuplocationsranked.css" rel="stylesheet" type="text/css">
+<link href="~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/app.css" rel="stylesheet" type="text/css">*@
+
+<div id="main" style="position:relative;">
+    <!--pickup-notification start-->
+    @*<div class="widgetsdpd_site pickup-notification" id="pickup-notification">
+            <div class="informClass">
+                <div class="inform">
+
+                    <div class="inform-message-wrap ng-scope">
+                        <div style="padding: 15px;color: #fff !important;border-color: #d73925;background-color: #dd4b39 !important;" class="inform-message alert-dismissible">@Html.ValidationMessageFor(m => m.ErrorMessage)</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>*@
+    <!--pickup-notification end-->
+    @if (!string.IsNullOrEmpty(Model.GoogleMapsApiKey) && !string.IsNullOrEmpty(Model.ShippingMethodName) && string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+
+        <div id="map-loading-window" style="display: none">
+            <span class="please-wait">@T("Plugins.Widgets.DPDShipToShop.LoadingMap")</span>
+        </div>
+
+        <div class="" id="widgetsdpd-pickuppoints-map-container" style="display: none">
+            <div class="ajax-loading-window" style="display:none;"></div>
+            <!--<div class="widgetsdpd-hero"><img src="~/Plugins/Widgets.DPDShipToShop/Themes/DefaultClean/Content/images/widgetsdpd-hero.jpg" /></div>-->
+            <!--START WIDGETDPD WRAPPER-->
+            <div class="widgetsdpd_site widgetsdpd-site widgetsdpd-site-wrapper">
+                <div class="row">
+                    <div class="widgetsdpd-pickupshop-search">
+
+                        <div class="large-12">
+                            <div class="large-8 small-12 column hide-for-medium-down">
+                                <!--widgetsdpd-pickup-points-map start-->
+                                <div class="widgetsdpd-pickup-points-map" id="dpd-map" style="position: relative; overflow: hidden;height: 600px;"></div>
+                                <!--widgetsdpd-pickup-points-map end-->
+                            </div>
+                            <div class="large-4 small-12 column" id="pickup-ranked-list" style="height: 600px; overflow-y: auto;">
+                                <!--widgetsdpd-pickup-showpickuplocationsranked start-->
+                                <div class="widgetsdpd_site widgetsdpd-pickup-showpickuplocationsranked" id="pickup-locations">
+                                    <div class="show-for-medium-up">
+                                        <div class="search">
+                                            <div class="input-container">
+                                                <input id="sender_postcode" type="text" placeholder="@T("Plugins.Widgets.DPDShipToShop.SearchPlaceholder")">
+                                                <input type="hidden" id="postal_code" value="@Model.PostalCode" />
+                                                <input type="hidden" id="country" value="@Model.CountryCode" />
+                                                <input type="hidden" id="select_button_text" value="@T("Plugins.Widgets.DPDShipToShop.SelectButtonText").ToString().ToUpper()" />
+                                                <input type="hidden" id="open_times_heading" value="@T("Plugins.Widgets.DPDShipToShop.OpenTimesHeading")" />
+                                                <input type="hidden" id="open_times_mon_fri" value="@T("Plugins.Widgets.DPDShipToShop.OpenTimesMonFri")" />
+                                                <input type="hidden" id="open_times_sat" value="@T("Plugins.Widgets.DPDShipToShop.OpenTimesSaturday")" />
+                                                <input type="hidden" id="open_times_sun" value="@T("Plugins.Widgets.DPDShipToShop.OpenTimesSunday")" />
+                                            </div>
+                                            <div class="button-container">
+                                                <button class="search" id="sender" onclick="widgetsdpd.searchAddressChange();" @(Model.UseGoogleAutoComplete ? "disabled" : "")></button>
+                                            </div>
+                                            <div class="cleaner"></div>
+                                            <div class="card-body error-card mt-2 ml-2 mr-2 mb-2 pl-2" id="postcode-notification" style="display:none;">
+                                                <div class="mb-0"></div>
+                                            </div>
+                                        </div>
+                                        <div id="pickup-locations-container" style="overflow-y: auto;"></div>
+                                    </div>
+                                </div>
+                                <!--widgetsdpd-pickup-showpickuplocationsranked end-->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="card-body error-card mt-2 ml-2 mr-2 mb-2 pl-2" id="location-notification" style="display:none;">
+                    <div class="mb-0"></div>
+                </div>
+            </div>
+            <!--END WIDGETDPD WRAPPER-->
+
+
+        </div>
+        <input type="hidden" id="dpd-pickupoint-location-code" value="" />
+
+        <script>
+            $(document).ready(function () {
+
+                $(targetDiv).hide();
+
+
+                var postalCodeData = $('#postal_code').val();
+                var countryCodeData = $('#country').val();
+
+                var libraries = null;
+
+                //Check for google maps
+                if (typeof google === "undefined") {
+                    var script = document.createElement("script");
+                    script.src = "@(Html.Raw(string.Format("https://maps.google.com/maps/api/js?{0}key={1}&callback=loadGoogleMapsApiReady", (Model.UseGoogleAutoComplete ? "libraries=places&" : ""), Model.GoogleMapsApiKey)))";
+                    document.getElementsByTagName("head")[0].appendChild(script);
+                } else {
+
+                    loadGoogleMapsApiReady();
+                }
+                if (locationsLoaded == false) {
+                    $("body").bind("gmap_loaded", function () {
+                        $.ajax({
+                            cache: false,
+                            url: '/DPDShipToShop/PickupPointsMapJson',
+                            type: "POST",
+                            data: { postalCode: postalCodeData, countryCode: countryCodeData },
+                            dataType: "json",
+                            success: function (data) {
+                                //if (data.error) {
+                                //handleErrors(data);
+                                //} else {
+                                globalAjaxResult = data;
+                                widgetsdpd.initMap();
+                                @if(Model.UseGoogleAutoComplete)
+                                {
+                                    <text>widgetsdpd.initAutocomplete();</text>
+                                }
+
+                                //}
+
+                            },
+                            error: function (data) {
+                                $(targetDiv).html("There was an error...");
+                            },
+                            failure: function (data) {
+                                $(targetDiv).html("There was a failure...");
+                            }
+                        });
+                    });
+                };
+
+
+                $("input[name='shippingoption']").click(function () {
+
+                    if ($(this).val() == "@Model.ShippingMethodName") {
+
+                        if ($("#dpd-pickupoint-location-code").val()) {
+                            //Enable next step button
+                            $('.shipping-method-next-step-button').prop('disabled', false).css("opacity", "1");
+                        } else {
+                            //Disable next step button
+                            $('.shipping-method-next-step-button').prop('disabled', true).css("opacity", "0.5");
+                        }
+
+                        $(mapLoadingId).show();
+
+                        (function wait() {
+                            if (locationsLoaded) {
+                                widgetsdpd.reinitMap();
+                            } else {
+                                setTimeout(wait, 500);
+                            }
+                        })();
+
+                    } else {
+                        $(targetDiv).hide();
+                        //Enbale next step button
+                        $('.shipping-method-next-step-button').prop('disabled', false).css("opacity", "1");
+                        //window.google = {}
+                    };
+                });
+
+
+            });
+        </script>
+
+    }
+    else
+    {
+        @Model.ErrorMessage
+    }
+</div>
+

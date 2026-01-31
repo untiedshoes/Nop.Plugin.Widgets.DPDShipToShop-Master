@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Widgets",
+  "FriendlyName": "DPD Ship to Shop",
+  "SystemName": "Widgets.DPDShipToShop",
+  "Version": "1.20",
+  "SupportedVersions": [ "4.50" ],
+  "Author": "UntiedShoes (Craig Richards)",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Widgets.DPDShipToShop.dll",
+  "Description": "This plugin allows shipping via DPD Ship to Shop"
+}
