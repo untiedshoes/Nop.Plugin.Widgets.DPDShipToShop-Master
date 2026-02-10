@@ -346,7 +346,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                                 errorCode = errorItem.errorCode,
                                 errorMessage = errorItem.errorMessage,
                             });
-                        };
+                        }
+                        ;
 
                         var jsonError = JsonConvert.SerializeObject(errors);
                         return Json(new
@@ -385,7 +386,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                             PickupLocationSaturdayTime = await StringUtility.CleanHours(FilterWeekendOpeningTimes(stringData, 6, pickUpPoint.pickupLocation.pickupLocationCode), FilterWeekendClosingTimes(stringData, 6, pickUpPoint.pickupLocation.pickupLocationCode)),
                             PickupLocationSundayTime = await StringUtility.CleanHours(FilterWeekendOpeningTimes(stringData, 7, pickUpPoint.pickupLocation.pickupLocationCode), FilterWeekendClosingTimes(stringData, 7, pickUpPoint.pickupLocation.pickupLocationCode))
                         });
-                    };
+                    }
+                    ;
 
 
                     var json = JsonConvert.SerializeObject(Results);
@@ -567,7 +569,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             List<Result> getAllDPDPickupPointsResult = new List<Result>();
 
             //Check if we have the pickupPoint in the DB
-            foreach (var dpdpoint in _dpdShipToShopService.GetAllDPDPickupPointsByLocationCodeCustomerID(dpdPickupPointModel.CustomerId))
+            foreach (var dpdpoint in await _dpdShipToShopService.GetAllDPDPickupPointsByLocationCodeCustomerIDAsync(dpdPickupPointModel.CustomerId))
             {
                 getAllDPDPickupPointsResult.Add(new Result
                 {
@@ -585,7 +587,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     PickupLocationLongitude = dpdpoint.Longitude,
                     CreatedOnUtc = dpdpoint.CreatedOnUtc
                 });
-            };
+            }
+            ;
 
             if (!getAllDPDPickupPointsResult.Any())
             {
@@ -606,7 +609,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 //If we have results (Check if we have the pickupPoint in the DB), remove those DPD Pickuppoints
                 foreach (var dpdpointtoremove in getAllDPDPickupPointsResult)
                 {
-                    DeleteDPDPickupPoint(dpdpointtoremove.PickupLocationId);
+                    await DeleteDPDPickupPointAsync(dpdpointtoremove.PickupLocationId);
                 }
 
                 //Add a new DPD Pickuppoint
@@ -796,25 +799,19 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         private async Task AddAccessTokenToCacheAsync(string key, AccessTokenItem accessTokenItem)
         {
             var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(cacheExpirationInDays));
-            
+
             await _cache.SetStringAsync(key, JsonConvert.SerializeObject(accessTokenItem), options);
 
         }
 
-        protected virtual void DeleteDPDPickupPoint(int pickupPointId)
+        protected virtual async Task DeleteDPDPickupPointAsync(int pickupPointId)
         {
-            var pickupPoint = _dpdShipToShopService.GetDPDPickupPointById(pickupPointId);
-            if (pickupPoint == null)
+            var pickupPoint = await _dpdShipToShopService.GetDPDPickupPointByIdAsync(pickupPointId);
+
+            if (pickupPoint != null)
             {
-
+                await _dpdShipToShopService.DeleteDPDPickupPoint(pickupPoint);
             }
-            else
-            {
-                _dpdShipToShopService.DeleteDPDPickupPoint(pickupPoint);
-
-            }
-
-
         }
 
         protected async virtual Task SaveDPDShipToShopLocationAttribute(DPDShipToShopLocations dpdshiptoshoplocation)
@@ -824,7 +821,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             var customer = await _workContext.GetCurrentCustomerAsync();
             await _genericAttributeService.SaveAttributeAsync(customer, CustomNopCustomerDefaults.DPDShopToShopLocationId, dpdshiptoshoplocation, storeId);
         }
-        
+
         #endregion
     }
 }

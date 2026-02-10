@@ -76,20 +76,20 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <returns>Pickup points</returns>
-        public virtual IPagedList<DPDShipToShopLocations> GetAllDPDPickupPointsByLocationCodeCustomerID(int customerId, int pageIndex = 0, int pageSize = int.MaxValue)
+        public virtual async Task<IPagedList<DPDShipToShopLocations>> GetAllDPDPickupPointsByLocationCodeCustomerIDAsync(int customerId, int pageIndex = 0, int pageSize = int.MaxValue)
         {
-            var query = _dpdPickupPointRepository.Table;
             if (customerId == 0)
-            {
                 return null;
-            }
-            else
-            {
-                query = query.Where(o => o.CustomerId == customerId);
-                query = query.OrderBy(o => o.CreatedOnUtc).ThenBy(o => o.Organisation);
 
-                return new PagedList<DPDShipToShopLocations>(query.ToList(), pageIndex, pageSize);
-            }
+            var query = _dpdPickupPointRepository.Table
+                .AsNoTracking()
+                .Where(o => o.CustomerId == customerId)
+                .OrderBy(o => o.CreatedOnUtc)
+                .ThenBy(o => o.Organisation);
+
+            var items = await query.ToListAsync();
+
+            return new PagedList<DPDShipToShopLocations>(items, pageIndex, pageSize);
         }
 
 
@@ -98,12 +98,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         /// </summary>
         /// <param name="pickupPointId">Pickup point identifier</param>
         /// <returns>Pickup point</returns>
-        public virtual DPDShipToShopLocations GetDPDPickupPointById(int pickupPointId)
+        public virtual async Task<DPDShipToShopLocations> GetDPDPickupPointByIdAsync(int pickupPointId)
         {
             if (pickupPointId == 0)
                 return null;
 
-            return _dpdPickupPointRepository.GetByIdAsync(pickupPointId).Result;
+            return await _dpdPickupPointRepository.GetByIdAsync(pickupPointId);
         }
 
         /// <summary>
@@ -111,15 +111,15 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         /// </summary>
         /// <param name="pickupPointCustomerId">Pickup point customer identifier</param>
         /// <returns>Pickup point</returns>
-        public virtual DPDShipToShopLocations GetDPDPickupPointByCustomerId(int pickupPointCustomerId)
+        public virtual async Task<DPDShipToShopLocations> GetDPDPickupPointByCustomerIdAsync(int pickupPointCustomerId)
         {
             if (pickupPointCustomerId == 0)
                 return null;
 
-            var query = _dpdPickupPointRepository.Table;
-            query = query.Where(o => o.CustomerId == pickupPointCustomerId);
-            var item = query.FirstOrDefault();
+            var query = _dpdPickupPointRepository.Table
+                         .Where(o => o.CustomerId == pickupPointCustomerId);
 
+            var item = await query.FirstOrDefaultAsync();
             return item;
         }
 
@@ -163,26 +163,24 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         }
 
 
-        public virtual DPDShipToShopLocation GetDPDShipToShopLocationByOrderId(int orderId)
+        public virtual async Task<DPDShipToShopLocation> GetDPDShipToShopLocationByOrderIdAsync(int orderId)
         {
             if (orderId == 0)
                 return null;
 
-            var query = _dpdShipToShopLocationsRepository.Table;
-                query = query.Where(o => o.OrderId == orderId);
-            var item = query.FirstOrDefault();
+            var query = _dpdShipToShopLocationsRepository.Table
+                         .Where(o => o.OrderId == orderId);
 
+            var item = await query.FirstOrDefaultAsync();
             return item;
-
-            //return _dpdShipToShopLocationsRepository.GetById(locationId);
         }
 
-        public virtual DPDShipToShopLocation GetDPDShipToShopLocationById(int locationId)
+        public virtual async Task<DPDShipToShopLocation> GetDPDShipToShopLocationByIdAsync(int locationId)
         {
             if (locationId == 0)
                 return null;
 
-            return _dpdShipToShopLocationsRepository.GetByIdAsync(locationId).Result;
+            return await _dpdShipToShopLocationsRepository.GetByIdAsync(locationId);
         }
 
         public async virtual Task InsertDPDShipToShopLocation(DPDShipToShopLocation dpdShipToShopLocation)

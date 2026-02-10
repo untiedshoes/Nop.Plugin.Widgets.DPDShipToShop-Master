@@ -77,7 +77,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
 
                 try
                 {
-                    var dpdShipToShopLocation = _dPDShipToShopService.GetDPDPickupPointById(dpdShipToShopLocationId);
+                    var dpdShipToShopLocation = await _dPDShipToShopService.GetDPDPickupPointByIdAsync(dpdShipToShopLocationId);
 
                     string PickupLocationCode = string.Empty;
                     string Organisation = string.Empty;

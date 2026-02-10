@@ -18,21 +18,21 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <returns>Pickup points</returns>
-        IPagedList<DPDShipToShopLocations> GetAllDPDPickupPointsByLocationCodeCustomerID(int customerId, int pageIndex = 0, int pageSize = int.MaxValue);
-        
+        Task<IPagedList<DPDShipToShopLocations>> GetAllDPDPickupPointsByLocationCodeCustomerIDAsync(int customerId, int pageIndex = 0, int pageSize = int.MaxValue);
+
         /// <summary>
         /// Gets a pickup point
         /// </summary>
         /// <param name="pickupPointId">Pickup point identifier</param>
         /// <returns>Pickup point</returns>
-        DPDShipToShopLocations GetDPDPickupPointById(int pickupPointId);
+        Task<DPDShipToShopLocations> GetDPDPickupPointByIdAsync(int pickupPointId);
 
         /// <summary>
         /// Gets a pickup point
         /// </summary>
         /// <param name="pickupPointCustomerId">Pickup point customer identifier</param>
         /// <returns>Pickup point</returns>
-        DPDShipToShopLocations GetDPDPickupPointByCustomerId(int pickupPointCustomerId);
+        Task<DPDShipToShopLocations> GetDPDPickupPointByCustomerIdAsync(int pickupPointCustomerId);
 
         /// <summary>
         /// Inserts a pickup point
@@ -57,14 +57,14 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         /// </summary>
         /// <param name="dpdShipToShopLocationOrderId">Order identifier</param>
         /// <returns>Pickup point</returns>
-        DPDShipToShopLocation GetDPDShipToShopLocationByOrderId(int orderId);
+        Task<DPDShipToShopLocation> GetDPDShipToShopLocationByOrderIdAsync(int orderId);
 
         /// <summary>
         /// Gets a Ship To Shop Location by id
         /// </summary>
         /// <param name="dpdShipToShopLocationId">Ship To Shop Location identifier</param>
         /// <returns>Pickup point</returns>
-        DPDShipToShopLocation GetDPDShipToShopLocationById(int dpdShipToShopLocationId);
+        Task<DPDShipToShopLocation> GetDPDShipToShopLocationByIdAsync(int dpdShipToShopLocationId);
 
         /// <summary>
         /// Inserts a Ship To Shop Location
