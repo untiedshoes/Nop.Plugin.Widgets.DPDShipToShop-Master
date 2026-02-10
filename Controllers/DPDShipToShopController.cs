@@ -176,7 +176,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
             bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
             {
-                return _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
+                return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
             });
 
             IsRegisted = true;
@@ -257,7 +257,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
             bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
             {
-                return _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
+                return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
             });
 
             IsRegisted = true;

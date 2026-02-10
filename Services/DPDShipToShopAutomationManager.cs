@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Nop.Plugin.Widgets.DPDShipToShop.Services
 {
-    public class DPDShipToShopAutomationManager
+    public class DPDShipToShopAutomationManager : IDPDShipToShopAutomationManager
     {
         #region Fields
         private readonly IOrderService _orderService;
