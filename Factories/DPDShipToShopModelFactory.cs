@@ -256,7 +256,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                         ShippedFromWarehouse = warehouse?.Name
                     };
 
-                    PrepareShipmentItemModel(shipmentItemModel, orderItem, product);
+                    await PrepareShipmentItemModelAsync(shipmentItemModel, orderItem, product);
 
                     model.Items.Add(shipmentItemModel);
                 }
