@@ -236,20 +236,24 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                         $"{shipment.TotalWeight:F2} [{_measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId).Result?.Name}]";
 
                 //prepare shipment items
-                foreach (var item in _shipmentService.GetShipmentItemsByShipmentIdAsync(shipment.Id).Result)
+                var shipmentItems = await _shipmentService.GetShipmentItemsByShipmentIdAsync(shipment.Id);
+
+                foreach (var item in shipmentItems)
                 {
-                    var orderItem = await _orderService.GetOrderItemByIdAsync(item.OrderItemId).Result;
+                    var orderItem = await _orderService.GetOrderItemByIdAsync(item.OrderItemId);
+
                     if (orderItem == null)
                         continue;
 
-                    var product = await _productService.GetProductByIdAsync(orderItem.ProductId).Result;
+                    var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
 
-                    //fill in model values from the entity
+                    var warehouse = await _shippingService.GetWarehouseByIdAsync(item.WarehouseId);
+
                     var shipmentItemModel = new ShipmentItemModel
                     {
                         Id = item.Id,
                         QuantityInThisShipment = item.Quantity,
-                        ShippedFromWarehouse = _shippingService.GetWarehouseByIdAsync(item.WarehouseId).Result?.Name
+                        ShippedFromWarehouse = warehouse?.Name
                     };
 
                     PrepareShipmentItemModel(shipmentItemModel, orderItem, product);
