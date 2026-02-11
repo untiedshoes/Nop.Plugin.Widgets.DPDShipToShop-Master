@@ -269,7 +269,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                     {
                         model.TrackingNumberUrl = await shipmentTracker.GetUrlAsync(shipment.TrackingNumber);
                         if (_shippingSettings.DisplayShipmentEventsToStoreOwner)
-                            PrepareShipmentStatusEventModels(model.ShipmentStatusEvents, shipment);
+                            await PrepareShipmentStatusEventModels(model.ShipmentStatusEvents, shipment);
                     }
                 }
             }
@@ -293,7 +293,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
 
                 var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
 
-                PrepareShipmentItemModel(shipmentItemModel, orderItem, product);
+                await PrepareShipmentItemModelAsync(shipmentItemModel, orderItem, product);
 
                 //ensure that this product can be added to a shipment
                 if (shipmentItemModel.QuantityToAdd <= 0)
@@ -359,7 +359,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
         /// <param name="model">Shipment item model</param>
         /// <param name="orderItem">Order item</param>
         /// <param name="product">Product item</param>
-        protected virtual void PrepareShipmentItemModel(ShipmentItemModel model, OrderItem orderItem, Product product)
+        protected virtual async Task PrepareShipmentItemModelAsync(ShipmentItemModel model,OrderItem orderItem,Product product)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -373,21 +373,33 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
             if (orderItem.ProductId != product.Id)
                 throw new ArgumentException($"{nameof(orderItem.ProductId)} != {nameof(product.Id)}");
 
-            //fill in additional values (not existing in the entity)
             model.OrderItemId = orderItem.Id;
             model.ProductId = orderItem.ProductId;
             model.ProductName = product.Name;
-            model.Sku = _productService.FormatSkuAsync(product, orderItem.AttributesXml).Result;
             model.AttributeInfo = orderItem.AttributeDescription;
             model.ShipSeparately = product.ShipSeparately;
             model.QuantityOrdered = orderItem.Quantity;
-            model.QuantityInAllShipments = _orderService.GetTotalNumberOfItemsInAllShipmentsAsync(orderItem).Result;
-            model.QuantityToAdd = _orderService.GetTotalNumberOfItemsCanBeAddedToShipmentAsync(orderItem).Result;
 
-            var baseWeight = _measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId).Result?.Name;
-            var baseDimension = _measureService.GetMeasureDimensionByIdAsync(_measureSettings.BaseDimensionId).Result?.Name;
+            model.Sku = await _productService.FormatSkuAsync(product, orderItem.AttributesXml);
+
+            model.QuantityInAllShipments =
+                await _orderService.GetTotalNumberOfItemsInAllShipmentsAsync(orderItem);
+
+            model.QuantityToAdd =
+                await _orderService.GetTotalNumberOfItemsCanBeAddedToShipmentAsync(orderItem);
+
+            var baseWeightEntity =
+                await _measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId);
+
+            var baseDimensionEntity =
+                await _measureService.GetMeasureDimensionByIdAsync(_measureSettings.BaseDimensionId);
+
+            var baseWeight = baseWeightEntity?.Name;
+            var baseDimension = baseDimensionEntity?.Name;
+
             if (orderItem.ItemWeight.HasValue)
                 model.ItemWeight = $"{orderItem.ItemWeight:F2} [{baseWeight}]";
+
             model.ItemDimensions =
                 $"{product.Length:F2} x {product.Width:F2} x {product.Height:F2} [{baseDimension}]";
 
@@ -395,10 +407,17 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                 return;
 
             var rentalStartDate = orderItem.RentalStartDateUtc.HasValue
-                ? _productService.FormatRentalDate(product, orderItem.RentalStartDateUtc.Value) : string.Empty;
+                ? _productService.FormatRentalDate(product, orderItem.RentalStartDateUtc.Value)
+                : string.Empty;
+
             var rentalEndDate = orderItem.RentalEndDateUtc.HasValue
-                ? _productService.FormatRentalDate(product, orderItem.RentalEndDateUtc.Value) : string.Empty;
-            model.RentalInfo = string.Format(_localizationService.GetResourceAsync("Order.Rental.FormattedDate").Result, rentalStartDate, rentalEndDate);
+                ? _productService.FormatRentalDate(product, orderItem.RentalEndDateUtc.Value)
+                : string.Empty;
+
+            var resource =
+                await _localizationService.GetResourceAsync("Order.Rental.FormattedDate");
+
+            model.RentalInfo = string.Format(resource, rentalStartDate, rentalEndDate);
         }
 
         /// <summary>
