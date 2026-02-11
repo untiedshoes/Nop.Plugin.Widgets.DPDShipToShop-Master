@@ -255,12 +255,28 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 });
             }
 
-            bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
-            {
-                return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
-            });
+            //bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
+            //{
+            //    return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
+            //});
 
-            IsRegisted = true;
+            //IsRegisted = true;
+
+            //if (!IsRegisted)
+            //{
+            //    return Json(new
+            //    {
+            //        success = false
+            //    });
+            //}
+
+            //Updated the way we check if the plugin is regsitered.
+            var cacheKey = _cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey);
+
+            var isRegistered = await _staticCacheManager.GetAsync(
+                cacheKey,
+                () => _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber)
+            );
 
             if (!IsRegisted)
             {
