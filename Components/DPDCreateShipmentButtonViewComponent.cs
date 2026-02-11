@@ -39,7 +39,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
 
         #region Methods
 
-        public IViewComponentResult Invoke(string widgetZone, object additionalData)
+        public async Task<IViewComponentResult> InvokeAsync(string widgetZone, object additionalData)
         {
             
             if (!_DPDShipToShopSettings.PluginEnabled)
@@ -54,7 +54,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
                 return Content(string.Empty);
 
             //try to get data to fill model
-            var order = _orderService.GetOrderByIdAsync(orderModel.Id).Result;
+            var order = await _orderService.GetOrderByIdAsync(orderModel.Id).Result;
 
             //if (!string.IsNullOrEmpty(order.ShippingMethod) && order.PaymentStatus == PaymentStatus.Paid && order.ShippingStatus == ShippingStatus.NotYetShipped)
             if (!string.IsNullOrEmpty(order.ShippingMethod) && order.PaymentStatus == PaymentStatus.Paid)

@@ -69,7 +69,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
             _licenseService = licenseService;
         }
 
-        public IViewComponentResult Invoke(string widgetZone, object additionalData)
+        public async Task<IViewComponentResult> InvokeAsync(string widgetZone, object additionalData)
         {
 
             if (!_DPDShipToShopSettings.PluginEnabled)
@@ -77,24 +77,38 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
                 return Content(string.Empty);
             }
 
-            var storeScope = _storeContext.GetActiveStoreScopeConfigurationAsync().Result;
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync().Result;
             //var dpdSettings = _settingService.LoadSetting<DPDShipToShopSettings>(storeScope);
 
-            var _shippingAddress = _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
-            var _billingAddress = _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
+            var _shippingAddress = await _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
+            var _billingAddress = await _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
             string ShippingMethodName = _DPDShipToShopSettings.ShippingMethodName;
             string GoogleMapsApiKey = _DPDShipToShopSettings.GoogleMapsApiKey;
             string ErrorMessage = null;
 
             //Check for VerifyLicense
-            bool IsRegisted = _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
-            {
-                return _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
-            }).Result;
+            //bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
+            //{
+            //    return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
+            //}).Result;
 
-            IsRegisted = true;
+            //IsRegisted = true;
 
-            if(!IsRegisted)
+            //if(!IsRegisted)
+            //{
+            //    ShippingMethodName = null;
+            //    GoogleMapsApiKey = null;
+            //    ErrorMessage = "DPD Ship to Shop Plugin is not authorised, please enter a valid Serial Number.";
+            //}
+
+            var cacheKey = _cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey);
+
+            var isRegistered = await _staticCacheManager.GetAsync(
+                cacheKey,
+                () => _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber)
+            );
+
+            if (!isRegistered)
             {
                 ShippingMethodName = null;
                 GoogleMapsApiKey = null;

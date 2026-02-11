@@ -220,7 +220,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                 model.CanShip = !shipment.ShippedDateUtc.HasValue;
                 model.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
 
-                var shipmentOrder = _orderService.GetOrderByIdAsync(shipment.OrderId).Result;
+                var shipmentOrder = await _orderService.GetOrderByIdAsync(shipment.OrderId).Result;
 
                 model.CustomOrderNumber = shipmentOrder.CustomOrderNumber;
 
@@ -238,11 +238,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                 //prepare shipment items
                 foreach (var item in _shipmentService.GetShipmentItemsByShipmentIdAsync(shipment.Id).Result)
                 {
-                    var orderItem = _orderService.GetOrderItemByIdAsync(item.OrderItemId).Result;
+                    var orderItem = await _orderService.GetOrderItemByIdAsync(item.OrderItemId).Result;
                     if (orderItem == null)
                         continue;
 
-                    var product = _productService.GetProductByIdAsync(orderItem.ProductId).Result;
+                    var product = await _productService.GetProductByIdAsync(orderItem.ProductId).Result;
 
                     //fill in model values from the entity
                     var shipmentItemModel = new ShipmentItemModel
