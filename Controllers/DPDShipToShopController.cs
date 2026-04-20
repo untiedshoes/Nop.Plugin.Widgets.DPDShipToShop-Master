@@ -832,7 +832,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         protected async virtual Task SaveDPDShipToShopLocationAttribute(DPDShipToShopLocations dpdshiptoshoplocation)
         {
-            var store = _storeContext.GetCurrentStoreAsync().Result;
+            var store = await _storeContext.GetCurrentStoreAsync();
             var storeId = store.Id;
             var customer = await _workContext.GetCurrentCustomerAsync();
             await _genericAttributeService.SaveAttributeAsync(customer, CustomNopCustomerDefaults.DPDShopToShopLocationId, dpdshiptoshoplocation, storeId);
