@@ -180,7 +180,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop
         /// </summary>
         public async Task ManageSiteMapAsync(SiteMapNode rootNode)
         {
-            if (!_permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings).Result)
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings))
                 return;
 
             var myPluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "DPDShiptoShop");

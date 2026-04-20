@@ -220,20 +220,20 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                 model.CanShip = !shipment.ShippedDateUtc.HasValue;
                 model.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
 
-                var shipmentOrder = await _orderService.GetOrderByIdAsync(shipment.OrderId).Result;
+                var shipmentOrder = await _orderService.GetOrderByIdAsync(shipment.OrderId);
 
                 model.CustomOrderNumber = shipmentOrder.CustomOrderNumber;
 
                 model.ShippedDate = shipment.ShippedDateUtc.HasValue
-                    ? _dateTimeHelper.ConvertToUserTimeAsync(shipment.ShippedDateUtc.Value, DateTimeKind.Utc).Result.ToString()
-                    : _localizationService.GetResourceAsync("Admin.Orders.Shipments.ShippedDate.NotYet").Result;
+                    ? (await _dateTimeHelper.ConvertToUserTimeAsync(shipment.ShippedDateUtc.Value, DateTimeKind.Utc)).ToString()
+                    : await _localizationService.GetResourceAsync("Admin.Orders.Shipments.ShippedDate.NotYet");
                 model.DeliveryDate = shipment.DeliveryDateUtc.HasValue
-                    ? _dateTimeHelper.ConvertToUserTimeAsync(shipment.DeliveryDateUtc.Value, DateTimeKind.Utc).Result.ToString()
-                    : _localizationService.GetResourceAsync("Admin.Orders.Shipments.DeliveryDate.NotYet").Result;
+                    ? (await _dateTimeHelper.ConvertToUserTimeAsync(shipment.DeliveryDateUtc.Value, DateTimeKind.Utc)).ToString()
+                    : await _localizationService.GetResourceAsync("Admin.Orders.Shipments.DeliveryDate.NotYet");
 
                 if (shipment.TotalWeight.HasValue)
                     model.TotalWeight =
-                        $"{shipment.TotalWeight:F2} [{_measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId).Result?.Name}]";
+                        $"{shipment.TotalWeight:F2} [{(await _measureService.GetMeasureWeightByIdAsync(_measureSettings.BaseWeightId))?.Name}]";
 
                 //prepare shipment items
                 var shipmentItems = await _shipmentService.GetShipmentItemsByShipmentIdAsync(shipment.Id);
@@ -280,7 +280,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
             model.OrderId = order.Id;
             model.CustomOrderNumber = order.CustomOrderNumber;
 
-            var orderItems = await _orderService.GetOrderItemsAsync(order.Id, isShipEnabled: true, vendorId: _workContext.GetCurrentVendorAsync().Result?.Id ?? 0);
+            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            var orderItems = await _orderService.GetOrderItemsAsync(order.Id, isShipEnabled: true, vendorId: currentVendor?.Id ?? 0);
             //get the number of parcels for DPD
             model.NumberOfParcels = orderItems.Count();
 
@@ -304,9 +305,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
                 {
                     //multiple warehouses supported
                     shipmentItemModel.AllowToChooseWarehouse = true;
-                    foreach (var pwi in _productService.GetAllProductWarehouseInventoryRecordsAsync(orderItem.ProductId).Result.OrderBy(w => w.WarehouseId).ToList())
+                    var inventoryRecords = await _productService.GetAllProductWarehouseInventoryRecordsAsync(orderItem.ProductId);
+                    foreach (var pwi in inventoryRecords.OrderBy(w => w.WarehouseId).ToList())
                     {
-                        if (_productService.GetWarehousesByIdAsync(pwi.WarehouseId).Result is Warehouse warehouse)
+                        var warehouse = await _productService.GetWarehousesByIdAsync(pwi.WarehouseId);
+                        if (warehouse != null)
                         {
                             shipmentItemModel.AvailableWarehouses.Add(new ShipmentItemModel.WarehouseInfo
                             {

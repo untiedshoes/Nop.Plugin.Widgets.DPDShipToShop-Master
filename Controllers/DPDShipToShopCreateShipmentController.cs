@@ -140,9 +140,9 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// </summary>
         /// <param name="order">The order to check.</param>
         /// <returns>True when the current user can access the order; otherwise false.</returns>
-        protected virtual bool HasAccessToOrder(Order order)
+        protected virtual async Task<bool> HasAccessToOrder(Order order)
         {
-            return order != null && HasAccessToOrder(order.Id);
+            return order != null && await HasAccessToOrder(order.Id);
         }
 
         /// <summary>
@@ -150,17 +150,16 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// </summary>
         /// <param name="orderId">The order identifier to check.</param>
         /// <returns>True when the current user can access the order; otherwise false.</returns>
-        protected virtual bool HasAccessToOrder(int orderId)
+        protected virtual async Task<bool> HasAccessToOrder(int orderId)
         {
             if (orderId == 0)
                 return false;
 
-            if (_workContext.GetCurrentVendorAsync().Result == null)
-                //not a vendor; has access
+            var vendor = await _workContext.GetCurrentVendorAsync();
+            if (vendor == null)
                 return true;
 
-            var vendorId = _workContext.GetCurrentVendorAsync().Id;
-            var hasVendorProducts = _orderService.GetOrderItemsAsync(orderId, vendorId: vendorId).Result.Any();
+            var hasVendorProducts = (await _orderService.GetOrderItemsAsync(orderId, vendorId: vendor.Id)).Any();
 
             return hasVendorProducts;
         }
@@ -170,18 +169,17 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// </summary>
         /// <param name="orderItem">The order item to check.</param>
         /// <returns>True when the current user can access the product; otherwise false.</returns>
-        protected virtual bool HasAccessToProduct(OrderItem orderItem)
+        protected virtual async Task<bool> HasAccessToProduct(OrderItem orderItem)
         {
             if (orderItem == null || orderItem.ProductId == 0)
                 return false;
 
-            if (_workContext.GetCurrentVendorAsync().Result == null)
-                //not a vendor; has access
+            var vendor = await _workContext.GetCurrentVendorAsync();
+            if (vendor == null)
                 return true;
 
-            var vendorId = _workContext.GetCurrentVendorAsync().Result.Id;
-
-            return _productService.GetProductByIdAsync(orderItem.ProductId).Result?.VendorId == vendorId;
+            var product = await _productService.GetProductByIdAsync(orderItem.ProductId);
+            return product?.VendorId == vendor.Id;
         }
 
         /// <summary>
@@ -189,16 +187,16 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// </summary>
         /// <param name="shipment">The shipment to check.</param>
         /// <returns>True when the current user can access the shipment; otherwise false.</returns>
-        protected virtual bool HasAccessToShipment(Shipment shipment)
+        protected virtual async Task<bool> HasAccessToShipment(Shipment shipment)
         {
             if (shipment == null)
                 throw new ArgumentNullException(nameof(shipment));
 
-            if (_workContext.GetCurrentVendorAsync().Result == null)
-                //not a vendor; has access
+            var vendor = await _workContext.GetCurrentVendorAsync();
+            if (vendor == null)
                 return true;
 
-            return HasAccessToOrder(shipment.OrderId);
+            return await HasAccessToOrder(shipment.OrderId);
         }
 
         /// <summary>
@@ -208,7 +206,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected async virtual Task LogEditOrder(int orderId)
         {
-            var order = _orderService.GetOrderByIdAsync(orderId).Result;
+            var order = await _orderService.GetOrderByIdAsync(orderId);
 
             await _customerActivityService.InsertActivityAsync("EditOrder",
                 string.Format(await _localizationService.GetResourceAsync("ActivityLog.EditOrder"), order.CustomOrderNumber), order);
@@ -226,10 +224,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         [Area(AreaNames.Admin)]
         public async virtual Task<IActionResult> AddDPDShipment(int id)
         {
-            if (!_permissionService.AuthorizeAsync(StandardPermissionProvider.ManageOrders).Result)
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            await _logger.InformationAsync("Order ID:"+ id);
+            await _logger.InformationAsync("Order ID:" + id);
 
             //try to get an order with the specified id
             var order = await _orderService.GetOrderByIdAsync(id);
@@ -237,11 +235,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 return RedirectToAction("List");
 
             //a vendor should have access only to his products
-            if (_workContext.GetCurrentVendorAsync().Result != null && !HasAccessToOrder(order))
+            var currentVendor = await _workContext.GetCurrentVendorAsync();
+            if (currentVendor != null && !await HasAccessToOrder(order))
                 return RedirectToAction("List");
 
             //prepare model
-            var model = _DPDShipToShopModelFactory.PrepareDPDShipmentModel(new DPDShipmentModel(), null, order);
+            var model = await _DPDShipToShopModelFactory.PrepareDPDShipmentModel(new DPDShipmentModel(), null, order);
 
             return View("~/Plugins/Widgets.DPDShipToShop/Views/DPDAddShipment.cshtml", model);
         }

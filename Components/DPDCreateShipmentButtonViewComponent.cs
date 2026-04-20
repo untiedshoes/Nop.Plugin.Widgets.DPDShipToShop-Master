@@ -60,7 +60,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
                 return Content(string.Empty);
 
             //try to get data to fill model
-            var order = await _orderService.GetOrderByIdAsync(orderModel.Id).Result;
+            var order = await _orderService.GetOrderByIdAsync(orderModel.Id);
 
             //if (!string.IsNullOrEmpty(order.ShippingMethod) && order.PaymentStatus == PaymentStatus.Paid && order.ShippingStatus == ShippingStatus.NotYetShipped)
             if (!string.IsNullOrEmpty(order.ShippingMethod) && order.PaymentStatus == PaymentStatus.Paid)

@@ -175,10 +175,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         public async Task<IActionResult> Configure()
         {
 
-            if (!_permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings).Result)
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings))
                 return AccessDeniedView();
 
-            bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
+            bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), async () =>
             {
                 return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
             });
@@ -226,7 +226,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         public async Task<IActionResult> Configure(ConfigurationModel model)
         {
             //whether user has the authority to manage configuration
-            if (!_permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings).Result)
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageShippingSettings))
                 return AccessDeniedView();
 
             if (!ModelState.IsValid)
@@ -293,7 +293,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 () => _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber)
             );
 
-            if (!IsRegisted)
+            if (!isRegistered)
             {
                 return Json(new
                 {
@@ -334,8 +334,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             }
             else
             {
-                model.CountryCode = _countryService.GetCountryByIdAsync(_billingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode
-                    ?? _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode;
+                model.CountryCode = (await _countryService.GetCountryByIdAsync(_billingAddress.CountryId ?? 0))?.TwoLetterIsoCode
+                    ?? (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode;
 
             }
 
@@ -480,8 +480,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
             if (!string.IsNullOrEmpty(CountryCode))
             {
-                model.CountryCode = _countryService.GetCountryByIdAsync(_billingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode
-                    ?? _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode;
+                model.CountryCode = (await _countryService.GetCountryByIdAsync(_billingAddress.CountryId ?? 0))?.TwoLetterIsoCode
+                    ?? (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode;
             }
             else
             {
@@ -537,8 +537,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
                     if (!string.IsNullOrEmpty(CountryCode))
                     {
-                        NewPickUpPointsModel.CountryCode = _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode
-                            ?? _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode;
+                        NewPickUpPointsModel.CountryCode = (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode
+                            ?? (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode;
                     }
                     else
                     {
@@ -843,7 +843,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         {
             try
             {
-                var dpdSettings = await _settingService.LoadSettingAsync<DPDShipToShopSettings>(_storeContext.GetCurrentStoreAsync().Result.Id);
+                var currentStore = await _storeContext.GetCurrentStoreAsync();
+                var dpdSettings = await _settingService.LoadSettingAsync<DPDShipToShopSettings>(currentStore.Id);
                 //var logger = EngineContext.Current.Resolve<ILogger>();
                 var DpdClient = new DpdShipToShopClient(dpdSettings.UserName, dpdSettings.Password, dpdSettings.AccountNumber, "");
                 //Call Login as we need the login session token here on the header to continue
