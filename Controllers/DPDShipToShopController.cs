@@ -167,6 +167,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         #region Methods
 
+        /// <summary>
+        /// Displays the plugin configuration page in the admin area.
+        /// </summary>
+        /// <returns>The configuration view for the DPD Ship to Shop plugin.</returns>
         [Area(AreaNames.Admin)]
         public async Task<IActionResult> Configure()
         {
@@ -211,6 +215,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return View("~/Plugins/Widgets.DPDShipToShop/Views/Configure.cshtml", model);
         }
 
+        /// <summary>
+        /// Saves the plugin configuration values posted from the admin area.
+        /// </summary>
+        /// <param name="model">The configuration model containing the updated settings.</param>
+        /// <returns>The refreshed configuration view.</returns>
         [HttpPost]
         [AuthorizeAdmin]
         [Area(AreaNames.Admin)]
@@ -243,6 +252,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return await Configure();
         }
 
+        /// <summary>
+        /// Returns pickup-point search results as JSON for the supplied postcode and country.
+        /// </summary>
+        /// <param name="postalCode">The postcode used to search nearby pickup locations.</param>
+        /// <param name="countryCode">The two-letter country code for the search.</param>
+        /// <returns>A JSON result containing the pickup-point data or an error response.</returns>
         [HttpPost]
         public async Task<ActionResult> PickupPointsMapJson(string postalCode, string countryCode)
         {
@@ -426,6 +441,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             //return PartialView("~/Plugins/Widgets.DPD/Views/PickupPointsMap.cshtml", model);
         }
 
+        /// <summary>
+        /// Returns the pickup-point map markup for the supplied search details.
+        /// </summary>
+        /// <param name="postalCode">The postcode used to search nearby pickup locations.</param>
+        /// <param name="countryCode">The two-letter country code for the search.</param>
+        /// <returns>A JSON result containing the rendered map HTML.</returns>
         [HttpPost]
         public async Task<ActionResult> PickupPointsMap(string postalCode, string countryCode)
         {
@@ -546,6 +567,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             //return PartialView("~/Plugins/Widgets.DPD/Views/PickupPointsMap.cshtml", model);
         }
 
+        /// <summary>
+        /// Saves the pickup location selected by the current customer.
+        /// </summary>
+        /// <param name="shiptoshoplocation">The pickup location selected in the checkout UI.</param>
+        /// <returns>A JSON result indicating whether the selection was saved successfully.</returns>
         [HttpPost]
         public async Task<IActionResult> SelectPickupLocation([FromBody] DPDShipToShopLocations shiptoshoplocation)
         {
@@ -645,6 +671,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         #region Helpers
 
+        /// <summary>
+        /// Extracts the earliest weekday opening time for the specified pickup location.
+        /// </summary>
+        /// <param name="stringData">The raw DPD API JSON payload.</param>
+        /// <param name="day">The day value used when filtering opening windows.</param>
+        /// <param name="pickupLocationCode">The pickup location code.</param>
+        /// <returns>The earliest weekday opening time, or null when unavailable.</returns>
         private string FilterWeekdayOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
             var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
@@ -672,6 +705,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         }
 
+        /// <summary>
+        /// Extracts the latest weekday closing time for the specified pickup location.
+        /// </summary>
+        /// <param name="stringData">The raw DPD API JSON payload.</param>
+        /// <param name="day">The day value used when filtering opening windows.</param>
+        /// <param name="pickupLocationCode">The pickup location code.</param>
+        /// <returns>The latest weekday closing time, or null when unavailable.</returns>
         private string FilterWeekdayClosingTimes(string stringData, int day, string pickupLocationCode)
         {
             var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
@@ -698,6 +738,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         }
 
+        /// <summary>
+        /// Extracts the weekend opening time for the specified pickup location and day.
+        /// </summary>
+        /// <param name="stringData">The raw DPD API JSON payload.</param>
+        /// <param name="day">The weekend day to filter for.</param>
+        /// <param name="pickupLocationCode">The pickup location code.</param>
+        /// <returns>The opening time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
             var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
@@ -724,6 +771,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         }
 
+        /// <summary>
+        /// Extracts the weekend closing time for the specified pickup location and day.
+        /// </summary>
+        /// <param name="stringData">The raw DPD API JSON payload.</param>
+        /// <param name="day">The weekend day to filter for.</param>
+        /// <param name="pickupLocationCode">The pickup location code.</param>
+        /// <returns>The closing time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendClosingTimes(string stringData, int day, string pickupLocationCode)
         {
             var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
@@ -750,6 +804,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         }
 
+        /// <summary>
+        /// Gets a cached DPD login token or requests a new one when needed.
+        /// </summary>
+        /// <param name="apiName">The cache key name for the API token.</param>
+        /// <returns>A DPD session token.</returns>
         private async Task<string> GetLoginToken(string apiName)
         {
             //var logger = EngineContext.Current.Resolve<ILogger>();
@@ -775,6 +834,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return newAccessToken.AccessToken;
         }
 
+        /// <summary>
+        /// Performs a login request to DPD and builds a cacheable access token item.
+        /// </summary>
+        /// <param name="apiName">The API name associated with the token request.</param>
+        /// <returns>An access token item containing the session token and expiry information.</returns>
         private async Task<AccessTokenItem> GetLoginAsyncToken(string apiName)
         {
             try
@@ -800,6 +864,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a previously cached access token item.
+        /// </summary>
+        /// <param name="key">The cache key to read.</param>
+        /// <returns>The cached access token item, or null if none exists.</returns>
         private async Task<AccessTokenItem> GetAccessTokenFromCacheAsync(string key)
         {
             var item = await _cache.GetStringAsync(key);
@@ -812,6 +881,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return null;
         }
 
+        /// <summary>
+        /// Stores the supplied access token item in the distributed cache.
+        /// </summary>
+        /// <param name="key">The cache key to write.</param>
+        /// <param name="accessTokenItem">The token item to cache.</param>
         private async Task AddAccessTokenToCacheAsync(string key, AccessTokenItem accessTokenItem)
         {
             var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(cacheExpirationInDays));
@@ -820,6 +894,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         }
 
+        /// <summary>
+        /// Deletes a stored DPD pickup point by its identifier.
+        /// </summary>
+        /// <param name="pickupPointId">The pickup point identifier.</param>
         protected virtual async Task DeleteDPDPickupPointAsync(int pickupPointId)
         {
             var pickupPoint = await _dpdShipToShopService.GetDPDPickupPointByIdAsync(pickupPointId);
@@ -830,6 +908,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             }
         }
 
+        /// <summary>
+        /// Saves the selected ship-to-shop location as a customer attribute.
+        /// </summary>
+        /// <param name="dpdshiptoshoplocation">The selected pickup location record.</param>
         protected async virtual Task SaveDPDShipToShopLocationAttribute(DPDShipToShopLocations dpdshiptoshoplocation)
         {
             var store = await _storeContext.GetCurrentStoreAsync();

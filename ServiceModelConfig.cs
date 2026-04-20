@@ -21,6 +21,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop
         public static readonly HttpClient HttpClient = new HttpClient();
         public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings();
 
+        /// <summary>
+        /// Configures the shared HTTP client with the headers required for DPD API requests.
+        /// </summary>
+        /// <param name="dpdUserName">The DPD API user name.</param>
+        /// <param name="dpdPassword">The DPD API password.</param>
+        /// <param name="dpdAccountNumber">The DPD account number.</param>
+        /// <param name="dpdSessionId">The optional DPD session identifier.</param>
         public static void Create(String dpdUserName, String dpdPassword, string dpdAccountNumber, string dpdSessionId = "")
         {
             //CR Logger

@@ -33,6 +33,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request.Base
             Content = content;
         }
 
+        /// <summary>
+        /// Executes the POST request asynchronously.
+        /// </summary>
+        /// <returns>The deserialized response payload.</returns>
         public override async Task<TResponse> ExecuteAsync()
         {
             //CR Logger
@@ -51,6 +55,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request.Base
             return await DeserializeResponseAsync(response);
         }
 
+        /// <summary>
+        /// Executes the POST request synchronously.
+        /// </summary>
+        /// <returns>The deserialized response payload.</returns>
         public override TResponse Execute()
         {
 

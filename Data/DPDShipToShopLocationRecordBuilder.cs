@@ -9,6 +9,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Data
 {
     public class DPDShipToShopLocationRecordBuilder : NopEntityBuilder<DPDShipToShopLocation>
     {
+        /// <summary>
+        /// Configures the database mapping for the ship-to-shop location entity.
+        /// </summary>
+        /// <param name="table">The table builder used to define the schema.</param>
         public override void MapEntity(CreateTableExpressionBuilder table)
         {
             //map the additional properties as foreign keys

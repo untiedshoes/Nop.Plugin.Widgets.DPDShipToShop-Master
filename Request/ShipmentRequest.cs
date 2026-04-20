@@ -17,6 +17,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request
             RequestUrl = "shipping/shipment";
         }
 
+        /// <summary>
+        /// Executes the shipment request against the DPD API.
+        /// </summary>
+        /// <returns>The deserialized shipment response.</returns>
         public async Task<ShipmentResponse> ExecuteShipmentAsync()
         {
 

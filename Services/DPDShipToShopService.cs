@@ -163,6 +163,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         }
 
 
+        /// <summary>
+        /// Gets the stored ship-to-shop location for the specified order.
+        /// </summary>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns>The stored location, or null if none exists.</returns>
         public virtual async Task<DPDShipToShopLocation> GetDPDShipToShopLocationByOrderIdAsync(int orderId)
         {
             if (orderId == 0)
@@ -175,6 +180,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
             return item;
         }
 
+        /// <summary>
+        /// Gets a stored ship-to-shop location by its identifier.
+        /// </summary>
+        /// <param name="locationId">The location identifier.</param>
+        /// <returns>The matching location, or null if none exists.</returns>
         public virtual async Task<DPDShipToShopLocation> GetDPDShipToShopLocationByIdAsync(int locationId)
         {
             if (locationId == 0)
@@ -183,6 +193,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
             return await _dpdShipToShopLocationsRepository.GetByIdAsync(locationId);
         }
 
+        /// <summary>
+        /// Inserts a stored ship-to-shop location record.
+        /// </summary>
+        /// <param name="dpdShipToShopLocation">The location record to insert.</param>
         public async virtual Task InsertDPDShipToShopLocation(DPDShipToShopLocation dpdShipToShopLocation)
         {
             if (dpdShipToShopLocation == null)
@@ -191,6 +205,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
             await _dpdShipToShopLocationsRepository.InsertAsync(dpdShipToShopLocation);
         }
 
+        /// <summary>
+        /// Updates a stored ship-to-shop location record.
+        /// </summary>
+        /// <param name="dpdShipToShopLocation">The location record to update.</param>
         public async virtual Task UpdateDPDShipToShopLocation(DPDShipToShopLocation dpdShipToShopLocation)
         {
             if (dpdShipToShopLocation == null)
@@ -199,6 +217,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
             await _dpdShipToShopLocationsRepository.UpdateAsync(dpdShipToShopLocation);
         }
 
+        /// <summary>
+        /// Deletes a stored ship-to-shop location record.
+        /// </summary>
+        /// <param name="dpdShipToShopLocation">The location record to delete.</param>
         public async virtual Task DeleteDPDShipToShopLocation(DPDShipToShopLocation dpdShipToShopLocation)
         {
             if (dpdShipToShopLocation == null)

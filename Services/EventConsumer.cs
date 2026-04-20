@@ -64,6 +64,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
 
         #endregion
 
+        /// <summary>
+        /// Handles the order placed event and persists the selected pickup location against the order.
+        /// </summary>
+        /// <param name="eventMessage">The order placed event payload.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task HandleEventAsync(OrderPlacedEvent eventMessage)
         {
             var order = eventMessage.Order;

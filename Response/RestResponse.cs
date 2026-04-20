@@ -10,6 +10,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Response
 {
     public class RestResponse<T>
     {
+        /// <summary>
+        /// Deserializes the supplied HTTP response into the target type.
+        /// </summary>
+        /// <param name="response">The HTTP response to deserialize.</param>
+        /// <returns>The deserialized response instance.</returns>
         public async Task<T> DeserializeResponseAsync(HttpResponseMessage response)
         {
             var contentJson = await response.Content.ReadAsStringAsync();

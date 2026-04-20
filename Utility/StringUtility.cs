@@ -37,6 +37,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Utility
             return en.ToString();
         }
 
+        /// <summary>
+        /// Formats pickup-point opening and closing times into a single display string.
+        /// </summary>
+        /// <param name="openTime">The opening time to display.</param>
+        /// <param name="closedTime">The closing time to display.</param>
+        /// <returns>A formatted opening-hours string or a closed indicator.</returns>
         public static Task<string> CleanHours(string openTime, string closedTime)
         {
             if (!String.IsNullOrEmpty(openTime) || !String.IsNullOrEmpty(closedTime))

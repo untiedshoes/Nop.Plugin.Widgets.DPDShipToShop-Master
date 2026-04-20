@@ -39,6 +39,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
 
         #region Methods
 
+        /// <summary>
+        /// Renders the admin order button used to open the DPD shipment page.
+        /// </summary>
+        /// <param name="widgetZone">The widget zone being rendered.</param>
+        /// <param name="additionalData">Additional data supplied by the order details page.</param>
+        /// <returns>The shipment button view when the order is eligible; otherwise empty content.</returns>
         public async Task<IViewComponentResult> InvokeAsync(string widgetZone, object additionalData)
         {
             

@@ -16,6 +16,9 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Data
             _migrationManager = migrationManager;
         }
 
+        /// <summary>
+        /// Creates the base database tables required by the plugin.
+        /// </summary>
         public override void Up()
         {
             Create.TableFor<DPDShipToShopLocations>();

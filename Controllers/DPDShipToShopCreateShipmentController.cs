@@ -135,11 +135,21 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         #region Utilities
 
+        /// <summary>
+        /// Determines whether the current user can access the specified order.
+        /// </summary>
+        /// <param name="order">The order to check.</param>
+        /// <returns>True when the current user can access the order; otherwise false.</returns>
         protected virtual bool HasAccessToOrder(Order order)
         {
             return order != null && HasAccessToOrder(order.Id);
         }
 
+        /// <summary>
+        /// Determines whether the current user can access the specified order identifier.
+        /// </summary>
+        /// <param name="orderId">The order identifier to check.</param>
+        /// <returns>True when the current user can access the order; otherwise false.</returns>
         protected virtual bool HasAccessToOrder(int orderId)
         {
             if (orderId == 0)
@@ -155,6 +165,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return hasVendorProducts;
         }
 
+        /// <summary>
+        /// Determines whether the current user can access the specified order item product.
+        /// </summary>
+        /// <param name="orderItem">The order item to check.</param>
+        /// <returns>True when the current user can access the product; otherwise false.</returns>
         protected virtual bool HasAccessToProduct(OrderItem orderItem)
         {
             if (orderItem == null || orderItem.ProductId == 0)
@@ -169,6 +184,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return _productService.GetProductByIdAsync(orderItem.ProductId).Result?.VendorId == vendorId;
         }
 
+        /// <summary>
+        /// Determines whether the current user can access the specified shipment.
+        /// </summary>
+        /// <param name="shipment">The shipment to check.</param>
+        /// <returns>True when the current user can access the shipment; otherwise false.</returns>
         protected virtual bool HasAccessToShipment(Shipment shipment)
         {
             if (shipment == null)
@@ -181,6 +201,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             return HasAccessToOrder(shipment.OrderId);
         }
 
+        /// <summary>
+        /// Writes an activity log entry for an edited order.
+        /// </summary>
+        /// <param name="orderId">The identifier of the edited order.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         protected async virtual Task LogEditOrder(int orderId)
         {
             var order = _orderService.GetOrderByIdAsync(orderId).Result;
@@ -193,6 +218,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         #region Shipments
 
+        /// <summary>
+        /// Displays the admin page used to create a DPD shipment for an order.
+        /// </summary>
+        /// <param name="id">The order identifier.</param>
+        /// <returns>The DPD shipment creation view.</returns>
         [Area(AreaNames.Admin)]
         public async virtual Task<IActionResult> AddDPDShipment(int id)
         {

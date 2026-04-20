@@ -40,6 +40,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
         //Product Key
         private const string productKey = "%t9nHg5jf7W+vJHh";
 
+        /// <summary>
+        /// Validates the plugin serial number against the current store URL.
+        /// </summary>
+        /// <param name="serialNumber">The serial number to validate.</param>
+        /// <returns>True when the serial number is valid for the current store; otherwise false.</returns>
         public async Task<bool> VerifyLicense(string serialNumber)
         {
             string decryptLicenseString = "";
@@ -135,6 +140,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
             return false;
         }
 
+        /// <summary>
+        /// Determines whether the supplied string contains valid license JSON.
+        /// </summary>
+        /// <param name="strInput">The string to validate.</param>
+        /// <returns>True when the string contains valid JSON; otherwise false.</returns>
         public bool IsValidJson(string strInput)
         {
             if (string.IsNullOrWhiteSpace(strInput)) return false;

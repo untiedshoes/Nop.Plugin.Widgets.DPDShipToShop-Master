@@ -15,6 +15,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request.Base
         protected String RequestUrl;
         protected HttpMethod RequestMethod;
 
+        /// <summary>
+        /// Initializes a new base request using the supplied host, HTTP client, and serializer settings.
+        /// </summary>
+        /// <param name="host">The API host base URL.</param>
+        /// <param name="httpClient">The HTTP client used to execute the request.</param>
+        /// <param name="serializerSettings">The JSON serializer settings.</param>
         protected BaseRequest(String host, HttpClient httpClient, JsonSerializerSettings serializerSettings)
         {
             Host = host;
@@ -27,16 +33,29 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request.Base
             }
         }
 
+        /// <summary>
+        /// Executes the request asynchronously.
+        /// </summary>
+        /// <returns>The response returned by the request.</returns>
         public virtual async Task<TResponse> ExecuteAsync()
         {
             return null;
         }
 
+        /// <summary>
+        /// Executes the request synchronously.
+        /// </summary>
+        /// <returns>The response returned by the request.</returns>
         public virtual TResponse Execute()
         {
             return null;
         }
 
+        /// <summary>
+        /// Deserializes an asynchronous HTTP response into the expected response type.
+        /// </summary>
+        /// <param name="response">The HTTP response to deserialize.</param>
+        /// <returns>The deserialized response.</returns>
         protected async Task<TResponse> DeserializeResponseAsync(HttpResponseMessage response)
         {
             var contentJson = await response.Content.ReadAsStringAsync();
@@ -78,6 +97,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request.Base
             return result;
         }
 
+        /// <summary>
+        /// Deserializes a synchronous HTTP response into the expected response type.
+        /// </summary>
+        /// <param name="response">The HTTP response to deserialize.</param>
+        /// <returns>The deserialized response.</returns>
         protected TResponse DeserializeResponse(HttpResponseMessage response)
         {
             var contentJson = response.Content.ReadAsStringAsync();

@@ -65,6 +65,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
             _licenseService = licenseService;
         }
 
+        /// <summary>
+        /// Builds the public pickup-point map view component model.
+        /// </summary>
+        /// <param name="widgetZone">The widget zone being rendered.</param>
+        /// <param name="additionalData">Optional additional data supplied by nopCommerce.</param>
+        /// <returns>The rendered pickup-point map view.</returns>
         public async Task<IViewComponentResult> InvokeAsync(string widgetZone, object additionalData)
         {
 
@@ -134,6 +140,13 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
 
 
         //Get Pickup Points
+        /// <summary>
+        /// Retrieves pickup points from the DPD API for the current customer postcode.
+        /// </summary>
+        /// <param name="DpdUserName">The DPD API user name.</param>
+        /// <param name="DpdPassword">The DPD API password.</param>
+        /// <param name="dpdAccountNumber">The DPD account number.</param>
+        /// <returns>The raw pickup-point response content.</returns>
         public async Task<string> GetPickupPoints(string DpdUserName, string DpdPassword, string dpdAccountNumber)
         {
             var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
@@ -165,6 +178,15 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
         }
 
         //Get The URI
+        /// <summary>
+        /// Sends an authenticated GET request to the supplied DPD API endpoint.
+        /// </summary>
+        /// <param name="u">The URI to request.</param>
+        /// <param name="dpdUserName">The DPD API user name.</param>
+        /// <param name="dpdPassword">The DPD API password.</param>
+        /// <param name="dpdAccountNumber">The DPD account number.</param>
+        /// <param name="dpdSessionId">The DPD session identifier.</param>
+        /// <returns>The raw response content returned by DPD.</returns>
         public async Task<string> GetURI(Uri u, String dpdUserName, String dpdPassword, string dpdAccountNumber, string dpdSessionId)
         {
 

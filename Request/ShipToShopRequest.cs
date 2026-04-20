@@ -17,6 +17,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Request
             RequestUrl = "https://api.dpdgroup.co.uk/organisation/pickuplocation/filter=nearAddress&countryCode=GB&searchPageSize=10&searchPage=1&searchCriteria=&maxDistance=10&searchAddress=DH34AG";
         }
 
+        /// <summary>
+        /// Executes the ship-to-shop pickup location request.
+        /// </summary>
+        /// <returns>The deserialized ship-to-shop response.</returns>
         public async Task<ShipToShopResponse> ExecuteShipToShopAsync()
         {
             //CR Logger
