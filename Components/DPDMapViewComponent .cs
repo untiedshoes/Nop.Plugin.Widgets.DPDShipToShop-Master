@@ -41,10 +41,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
         private readonly LicenseService _licenseService;
         public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings();
 
-        private const string DpdUserName = "DPD_USERNAME_REMOVED";
-        private const string DpdPassword = "DPD_PASSWORD_REMOVED";
-        private const string DpdAccountNumber = "DPD_ACCOUNT_REMOVED";
-
         public DPDMapViewComponent(IStoreContext storeContext,
             ISettingService settingService, IWebHelper webHelper,
             IWorkContext workContext,
@@ -77,11 +73,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
                 return Content(string.Empty);
             }
 
-            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync().Result;
+            var storeScope = await _storeContext.GetActiveStoreScopeConfigurationAsync();
             //var dpdSettings = _settingService.LoadSetting<DPDShipToShopSettings>(storeScope);
 
-            var _shippingAddress = await _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
-            var _billingAddress = await _customerService.GetCustomerBillingAddressAsync(_workContext.GetCurrentCustomerAsync().Result).Result;
+            var _shippingAddress = await _customerService.GetCustomerBillingAddressAsync(await _workContext.GetCurrentCustomerAsync());
+            var _billingAddress = await _customerService.GetCustomerBillingAddressAsync(await _workContext.GetCurrentCustomerAsync());
             string ShippingMethodName = _DPDShipToShopSettings.ShippingMethodName;
             string GoogleMapsApiKey = _DPDShipToShopSettings.GoogleMapsApiKey;
             string ErrorMessage = null;
@@ -124,8 +120,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
                 //get postal code from the billing address or from the shipping one
                 PostalCode = _billingAddress?.ZipPostalCode
                     ?? _shippingAddress?.ZipPostalCode,
-                CountryCode = _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode
-                    ?? _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0).Result?.TwoLetterIsoCode,
+                CountryCode = (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode
+                    ?? (await _countryService.GetCountryByIdAsync(_shippingAddress.CountryId ?? 0))?.TwoLetterIsoCode,
                 //ResponseData = JsonConvert.SerializeObject(GetPickupPoints(_DPDShipToShopSettings.UserName, _DPDShipToShopSettings.Password, _DPDShipToShopSettings.AccountNumber), SerializerSettings),
                 ErrorMessage = ErrorMessage
 
