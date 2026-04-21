@@ -70,7 +70,8 @@ Coordinates requests between the UI, the DPD API, and stored plugin data:
 
 Handles communication with DPD:
 
-- `DPDShipToShopClient.cs` manages login and API requests
+- `DPDShipToShopClient.cs` sends login, pickup-point, and shipment requests once headers are prepared
+- `Services/DPDSessionService.cs` centrally manages DPD `geoSession` reuse and refresh
 - `Request/` and `Response/` define the request and response models
 - `ServiceModelConfig.cs` prepares the API communication setup
 
@@ -92,18 +93,22 @@ Extends nopCommerce order processing:
 Overall flow:
 
 1. The checkout widget appears for the configured shipping method.
-2. The plugin authenticates with DPD and retrieves nearby pickup locations.
-3. The customer selects a location on the map.
-4. The selection is stored and later attached to the order.
-5. Admin users can review the order and open the DPD shipment page.
+2. The plugin gets a valid cached DPD `geoSession`, refreshing it only when needed.
+3. The plugin retrieves nearby pickup locations from DPD.
+4. The customer selects a location on the map.
+5. The selection is stored and later attached to the order.
+6. Admin users can review the order and open the DPD shipment page.
 
 ## How the plugin works
 
 1. The customer reaches the shipping method step in checkout.
 2. When the selected shipping method matches the configured **Shipping Method Name**, the DPD pickup-point widget is shown.
-3. The plugin logs into the DPD API and searches for nearby pickup shops using the customer postcode and country code.
-4. The customer selects a pickup location from the map or ranked list.
-5. The chosen shop is saved and later attached to the order as an order note and email token content.
+3. The plugin asks the session service for a valid DPD `geoSession`.
+4. If a valid session is already cached, it is reused instead of logging in again.
+5. If there is no cached session or it has expired, the plugin performs a fresh DPD login and stores the new `geoSession` in distributed cache.
+6. The plugin searches for nearby pickup shops using the customer postcode and country code.
+7. The customer selects a pickup location from the map or ranked list.
+8. The chosen shop is saved and later attached to the order as an order note and email token content.
 
 ## Checkout experience
 
@@ -210,13 +215,30 @@ The authentication flow is:
 
 1. The plugin sends a login request to the DPD API using the configured credentials.
 2. DPD returns a session value named `geoSession`.
-3. Subsequent requests include:
+3. The plugin stores that `geoSession` in a central cache through `IDPDSessionService` / `DPDSessionService`.
+4. Subsequent pickup-point and shipment requests ask the session service for the current token instead of performing their own login.
+5. Those requests include:
    - a Basic `Authorization` header built from the DPD username and password
    - a `GEOClient` header using the DPD account number
    - a `GEOSession` header using the returned session token
-4. The plugin uses those headers for authenticated pickup-point and shipment requests.
+6. If the cached token is missing or expired, the session service performs one fresh login and updates the cache.
 
 In short, the auth model is **Basic Auth + session token headers**.
+
+## GeoSession reuse
+
+The plugin now reuses the DPD `geoSession` instead of logging in before every downstream API call.
+
+This behavior is intentional and is handled centrally by `Services/DPDSessionService.cs`:
+
+- `GetGeoSessionAsync(...)` returns the cached session when it is still valid
+- `RefreshGeoSessionAsync(...)` forces a fresh DPD login and replaces the cached session
+- the cached value is stored as an `AccessTokenItem` in distributed cache
+- the current implementation gives the cached `geoSession` a 1-day sliding expiration window
+
+This reduces unnecessary DPD login calls and keeps pickup-point lookup and shipment creation on the same session-management path.
+
+`DPDShipToShopClient` is now token-driven for pickup-point and shipment requests. It no longer performs an internal login for those operations; instead, callers obtain the current `geoSession` first and pass it into the client configuration.
 
 ## Google Maps integration
 
