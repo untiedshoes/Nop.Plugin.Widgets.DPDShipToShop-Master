@@ -362,7 +362,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
         /// <param name="model">Shipment item model</param>
         /// <param name="orderItem">Order item</param>
         /// <param name="product">Product item</param>
-        protected virtual async Task PrepareShipmentItemModelAsync(ShipmentItemModel model,OrderItem orderItem,Product product)
+        public virtual async Task PrepareShipmentItemModelAsync(ShipmentItemModel model,OrderItem orderItem,Product product)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -428,7 +428,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Factories
         /// </summary>
         /// <param name="models">List of shipment status event models</param>
         /// <param name="shipment">Shipment</param>
-        protected async virtual Task PrepareShipmentStatusEventModels(IList<ShipmentStatusEventModel> models, Shipment shipment)
+        public virtual async Task PrepareShipmentStatusEventModels(IList<ShipmentStatusEventModel> models, Shipment shipment)
         {
             if (models == null)
                 throw new ArgumentNullException(nameof(models));

@@ -24,10 +24,8 @@ using System.Threading.Tasks;
 using Nop.Core;
 using System.Text;
 using System.Net;
-using Microsoft.Extensions.Caching.Distributed;
 using Nop.Core.Infrastructure;
 using Nop.Services.Logging;
-using Nop.Plugin.Widgets.DPDShipToShop.Request.Base;
 using Nop.Plugin.Widgets.DPDShipToShop.Domain;
 using Microsoft.AspNetCore.Http;
 using Nop.Core.Http.Extensions;
@@ -75,7 +73,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             IDPDShipToShopService dpdShipToShopService,
             DPDShipToShopSettings DPDShipToShopSettings,
             LicenseService licenseService,
-            IDistributedCache cache,
             ICustomerService customerService,
             ICountryService countryService,
             IStateProvinceService stateProvinceService,
@@ -96,7 +93,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             _dpdShipToShopService = dpdShipToShopService;
             _DPDShipToShopSettings = DPDShipToShopSettings;
             _licenseService = licenseService;
-            _cache = cache;
             _customerService = customerService;
             _countryService = countryService;
             _stateProvinceService = stateProvinceService;
@@ -108,47 +104,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         }
 
         #endregion
-
-        private static readonly Object _lock = new Object();
-        private IDistributedCache _cache;
-
-        private const int cacheExpirationInDays = 1;
-
-        public class Result
-        {
-            public int PickupLocationId { get; set; }
-            public string PickupLocationCode { get; set; }
-            public string PickupLocationOrganisation { get; set; }
-            public string PickupLocationProperty { get; set; }
-            public string PickupLocationStreet { get; set; }
-            public string PickupLocationLocality { get; set; }
-            public string PickupLocationTown { get; set; }
-            public string PickupLocationCounty { get; set; }
-            public string PickupLocationPostcode { get; set; }
-            public string PickupLocationCountryCode { get; set; }
-            public float PickupLocationDistance { get; set; }
-            public bool PickupLocationDisabledAccess { get; set; }
-            public bool PickupLocationOpenLate { get; set; }
-            public bool PickupLocationOpenSaturday { get; set; }
-            public bool PickupLocationOpenSunday { get; set; }
-            public bool PickupLocationParkingAvailable { get; set; }
-            public decimal? PickupLocationLatitude { get; set; }
-            public decimal? PickupLocationLongitude { get; set; }
-            public string PickupLocationWeekdayTime { get; set; }
-            public string PickupLocationSaturdayTime { get; set; }
-            public string PickupLocationSundayTime { get; set; }
-            public int CustomerId { get; set; }
-            public virtual DateTime CreatedOnUtc { get; set; }
-        }
-
-        public class Error
-        {
-            public string errorCode { get; set; }
-            public string errorMessage { get; set; }
-            public string obj { get; set; }
-            public string errorType { get; set; }
-        }
-
         internal class PickupLocationOpenWindow
         {
             public string pickupLocationOpenWindowStartTime { get; set; }
@@ -365,14 +320,16 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     if (NewPickUpPointsModel.data == null)
                     {
 
-                        List<Error> errors = new List<Error>();
+                        List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel> errors = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel>();
 
                         foreach (var errorItem in NewPickUpPointsModel.error)
                         {
-                            errors.Add(new Error
+                            errors.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel
                             {
-                                errorCode = errorItem.errorCode,
-                                errorMessage = errorItem.errorMessage,
+                                ErrorCode = errorItem.errorCode,
+                                ErrorMessage = errorItem.errorMessage,
+                                ObjectName = errorItem.errorObj,
+                                ErrorType = errorItem.errorType,
                             });
                         }
                         ;
@@ -386,12 +343,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     }
 
 
-                    List<Result> Results = new List<Result>();
+                    List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel> Results = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel>();
 
 
                     foreach (var pickUpPoint in NewPickUpPointsModel.data.results)
                     {
-                        Results.Add(new Result
+                        Results.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel
                         {
                             PickupLocationCode = pickUpPoint.pickupLocation.pickupLocationCode,
                             PickupLocationOrganisation = pickUpPoint.pickupLocation.address.organisation,
@@ -605,12 +562,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 CreatedOnUtc = DateTime.UtcNow
             };
 
-            List<Result> getAllDPDPickupPointsResult = new List<Result>();
+            List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel> getAllDPDPickupPointsResult = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel>();
 
             //Check if we have the pickupPoint in the DB
             foreach (var dpdpoint in await _dpdShipToShopService.GetAllDPDPickupPointsByLocationCodeCustomerIDAsync(dpdPickupPointModel.CustomerId))
             {
-                getAllDPDPickupPointsResult.Add(new Result
+                getAllDPDPickupPointsResult.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel
                 {
                     PickupLocationId = dpdpoint.Id,
                     PickupLocationCode = dpdpoint.PickupLocationCode,
@@ -809,67 +766,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         private async Task<string> GetLoginToken(string apiName)
         {
             return await _dpdSessionService.GetGeoSessionAsync(apiName);
-        }
-
-        /// <summary>
-        /// Performs a login request to DPD and builds a cacheable access token item.
-        /// </summary>
-        /// <param name="apiName">The API name associated with the token request.</param>
-        /// <returns>An access token item containing the session token and expiry information.</returns>
-        private async Task<AccessTokenItem> GetLoginAsyncToken(string apiName)
-        {
-            try
-            {
-                var currentStore = await _storeContext.GetCurrentStoreAsync();
-                var dpdSettings = await _settingService.LoadSettingAsync<DPDShipToShopSettings>(currentStore.Id);
-                //var logger = EngineContext.Current.Resolve<ILogger>();
-                var DpdClient = new DpdShipToShopClient(dpdSettings.UserName, dpdSettings.Password, dpdSettings.AccountNumber, "");
-                //Call Login as we need the login session token here on the header to continue
-                LoginResponse loginResponse = await DpdClient.LoginAsync();
-
-                //logger.Information("getLogin - AccessToken: " + loginResponse.data.geoSession);
-                return new AccessTokenItem
-                {
-                    ExpiresIn = DateTime.UtcNow.AddSeconds(60 * 60 * 24),
-                    AccessToken = loginResponse.data.geoSession
-                };
-
-
-            }
-            catch (Exception e)
-            {
-                throw new ApplicationException($"Exception {e}");
-            }
-        }
-
-        /// <summary>
-        /// Retrieves a previously cached access token item.
-        /// </summary>
-        /// <param name="key">The cache key to read.</param>
-        /// <returns>The cached access token item, or null if none exists.</returns>
-        private async Task<AccessTokenItem> GetAccessTokenFromCacheAsync(string key)
-        {
-            var item = await _cache.GetStringAsync(key);
-            if (item != null)
-            {
-                var result = await Task.Run(() => JsonConvert.DeserializeObject<AccessTokenItem>(item));
-                return result;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Stores the supplied access token item in the distributed cache.
-        /// </summary>
-        /// <param name="key">The cache key to write.</param>
-        /// <param name="accessTokenItem">The token item to cache.</param>
-        private async Task AddAccessTokenToCacheAsync(string key, AccessTokenItem accessTokenItem)
-        {
-            var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(cacheExpirationInDays));
-
-            await _cache.SetStringAsync(key, JsonConvert.SerializeObject(accessTokenItem), options);
-
         }
 
         /// <summary>

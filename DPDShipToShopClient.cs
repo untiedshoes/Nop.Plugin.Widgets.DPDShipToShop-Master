@@ -4,14 +4,6 @@ using Nop.Plugin.Widgets.DPDShipToShop.Request.Base;
 using Nop.Plugin.Widgets.DPDShipToShop.Response;
 using System;
 using System.Threading.Tasks;
-using Nop.Services.Logging;
-using Nop.Core.Infrastructure;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Net;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace Nop.Plugin.Widgets.DPDShipToShop
 {
@@ -55,33 +47,10 @@ namespace Nop.Plugin.Widgets.DPDShipToShop
         /// Creates a ship-to-shop request for the specified address.
         /// </summary>
         /// <param name="Address">The address to use for the ship-to-shop lookup.</param>
-        /// <param name="DpdUserName">The DPD API user name.</param>
-        /// <param name="DpdPassword">The DPD API password.</param>
-        /// <param name="dpdAccountNumber">The DPD account number.</param>
         /// <returns>The DPD ship-to-shop response.</returns>
-        public async Task<ShipToShopResponse> CreateShipToShopAsync(Address Address, string DpdUserName, string DpdPassword, string dpdAccountNumber)
+        public async Task<ShipToShopResponse> CreateShipToShopAsync(Address Address)
         {
-
-            //CR Logger
-            var logger = EngineContext.Current.Resolve<ILogger>();
-            //logger.Information("DPDShipToShopClient Task<ShipToShopResponse> CreateShipToShopAsync has been hit");
-
-            ShipToShopResponse ShipToShopResponse = new ShipToShopResponse();
-
-            //Call Login as we need the login session token here on the header to continue
-            LoginResponse loginResponse = await LoginAsync();
-
-            if (!string.IsNullOrEmpty(loginResponse.data.geoSession))
-            {
-                //Create a new instance of the class and add login session value to the HTTP header
-                var loggedInClient = new DpdShipToShopClient(DpdUserName, DpdPassword, dpdAccountNumber, loginResponse.data.geoSession);
-
-                ShipToShopResponse = await SendRequestAsync(new ShipToShopRequest(Address));
-            }
-
-            //logger.Information("DPDShipToShopClient Task<ShipToShopResponse> CreateShipToShopAsync - " + Address + " - " + DpdUserName + " - " + " - " + DpdPassword + " - " + dpdAccountNumber);
-            //logger.Information("DPDShipToShopClient Task<ShipToShopResponse> CreateShipToShopAsync ShipToShopResponse - " + ShipToShopResponse.ShipToShopData);
-            return ShipToShopResponse;
+            return await SendRequestAsync(new ShipToShopRequest(Address));
         }
 
 
@@ -90,52 +59,20 @@ namespace Nop.Plugin.Widgets.DPDShipToShop
         /// Creates a shipment asynchronously using the supplied DPD credentials.
         /// </summary>
         /// <param name="shipment">The shipment payload to send to DPD.</param>
-        /// <param name="DpdUserName">The DPD API user name.</param>
-        /// <param name="DpdPassword">The DPD API password.</param>
-        /// <param name="DpdAccountNumber">The DPD account number.</param>
         /// <returns>The shipment creation response.</returns>
-        public async Task<ShipmentResponse> CreateShipmentAsync(Shipment shipment, string DpdUserName, string DpdPassword, string DpdAccountNumber)
+        public async Task<ShipmentResponse> CreateShipmentAsync(Shipment shipment)
         {
-            ShipmentResponse shipmentResponse = new ShipmentResponse();
-
-            //Call Login as we need the login session token here on the header to continue
-            LoginResponse loginResponse = await LoginAsync();
-
-            if (!string.IsNullOrEmpty(loginResponse.data.geoSession))
-            {
-                //Create a new instance of the class and add login session value to the HTTP header
-                var loggedInClient = new DpdShipToShopClient(DpdUserName, DpdPassword, DpdAccountNumber, loginResponse.data.geoSession);
-
-                shipmentResponse = await SendRequestAsync(new ShipmentRequest(shipment));
-            }
-
-            return shipmentResponse;
+            return await SendRequestAsync(new ShipmentRequest(shipment));
         }
 
         /// <summary>
         /// Creates a shipment synchronously using the supplied DPD credentials.
         /// </summary>
         /// <param name="shipment">The shipment payload to send to DPD.</param>
-        /// <param name="DpdUserName">The DPD API user name.</param>
-        /// <param name="DpdPassword">The DPD API password.</param>
-        /// <param name="DpdAccountNumber">The DPD account number.</param>
         /// <returns>The shipment creation response.</returns>
-        public ShipmentResponse CreateShipment(Shipment shipment, string DpdUserName, string DpdPassword, string DpdAccountNumber)
+        public ShipmentResponse CreateShipment(Shipment shipment)
         {
-            ShipmentResponse shipmentResponse = new ShipmentResponse();
-
-            //Call Login as we need the login session token here on the header to continue
-            LoginResponse loginResponse = Login();
-
-            if (!string.IsNullOrEmpty(loginResponse.data.geoSession))
-            {
-                //Create a new instance of the class and add login session value to the HTTP header
-                var loggedInClient = new DpdShipToShopClient(DpdUserName, DpdPassword, DpdAccountNumber, loginResponse.data.geoSession);
-
-                shipmentResponse = SendRequest(new ShipmentRequest(shipment));
-            }
-
-            return shipmentResponse;
+            return SendRequest(new ShipmentRequest(shipment));
         }
 
         //*********************************************************************************************************

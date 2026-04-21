@@ -82,7 +82,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Services
                 return null;
 
             var query = _dpdPickupPointRepository.Table
-                .AsNoTracking()
                 .Where(o => o.CustomerId == customerId)
                 .OrderBy(o => o.CreatedOnUtc)
                 .ThenBy(o => o.Organisation);

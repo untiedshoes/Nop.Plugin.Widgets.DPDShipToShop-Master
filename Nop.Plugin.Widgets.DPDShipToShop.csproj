@@ -14,7 +14,10 @@
         <PackageProjectUrl>PACKAGE_PROJECT_URL</PackageProjectUrl>
         <RepositoryUrl>REPOSITORY_URL</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
-        <OutputPath>..\..\Presentation\Nop.Web\Plugins\Widgets.DPDShipToShop</OutputPath>
+      <NopRootDir Condition="'$(NopRootDir)' == ''">../../nopCommerce</NopRootDir>
+      <NopWebDir Condition="'$(NopWebDir)' == ''">$(NopRootDir)/Presentation/Nop.Web</NopWebDir>
+      <NopBuildDir Condition="'$(NopBuildDir)' == ''">$(NopRootDir)/Build</NopBuildDir>
+      <OutputPath>$(NopWebDir)/Plugins/Widgets.DPDShipToShop</OutputPath>
         <OutDir>$(OutputPath)</OutDir>
         <!--Set this parameter to true to get the dlls copied from the NuGet cache to the output of your project. You need to set this parameter to true if your plugin has a nuget package to ensure that   the dlls copied from the NuGet cache to the output of your project-->
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
@@ -27,38 +30,16 @@
       <None Remove="Views\DPDCreateShipmentButton.cshtml" />
       <None Remove="Views\DPDMap.cshtml" />
     </ItemGroup>
-    <!--<ItemGroup>
-        <ProjectReference Include="..\..\Presentation\Nop.Web.Framework\Nop.Web.Framework.csproj" />
-        <ProjectReference Include="..\..\Presentation\Nop.Web\Nop.Web.csproj">
-          <Private>false</Private>
-          <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-        </ProjectReference>
-        <ClearPluginAssemblies Include="$(MSBuildProjectDirectory)\..\..\Build\ClearPluginAssemblies.proj" />
-    </ItemGroup>-->
     <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
     <ItemGroup>
-    <!-- nopCommerce core references (isolated) -->
-    <Reference Include="Nop.Core">
-      <HintPath>..\..\nop.libs\Nop.Core.dll</HintPath>
+    <ProjectReference Include="$(NopRootDir)/Presentation/Nop.Web.Framework/Nop.Web.Framework.csproj" />
+    <ProjectReference Include="$(NopWebDir)/Nop.Web.csproj">
       <Private>false</Private>
-    </Reference>
-
-    <Reference Include="Nop.Data">
-      <HintPath>..\..\nop.libs\Nop.Data.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
-    <Reference Include="Nop.Services">
-      <HintPath>..\..\nop.libs\Nop.Services.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-
-    <Reference Include="Nop.Web.Framework">
-      <HintPath>..\..\nop.libs\Nop.Web.Framework.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
+    <ClearPluginAssemblies Include="$(NopBuildDir)/ClearPluginAssemblies.proj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="logo.jpg">
@@ -291,9 +272,15 @@
 
  
 
+  <Target Name="EnsureNopCommercePaths" BeforeTargets="Build">
+    <Error Condition="!Exists('$(NopRootDir)/Presentation/Nop.Web/Nop.Web.csproj')" Text="nopCommerce source path not found. Set NopRootDir to the nopCommerce source root. Current value: $(NopRootDir)" />
+    <Error Condition="!Exists('$(NopRootDir)/Presentation/Nop.Web.Framework/Nop.Web.Framework.csproj')" Text="Nop.Web.Framework project not found under NopRootDir. Current value: $(NopRootDir)" />
+    <Error Condition="!Exists('$(NopBuildDir)/ClearPluginAssemblies.proj')" Text="ClearPluginAssemblies.proj not found. Set NopBuildDir or NopRootDir correctly. Current value: $(NopBuildDir)" />
+  </Target>
+
     <!-- This target execute after "Build" target -->
     <Target Name="NopTarget" AfterTargets="Build">
         <!-- Delete unnecessary libraries from plugins path -->
-        <MSBuild Projects="@(ClearPluginAssemblies)" Properties="PluginPath=$(MSBuildProjectDirectory)\ $(OutDir)" Targets="NopClear" />
+    <MSBuild Projects="@(ClearPluginAssemblies)" Properties="PluginPath=$(OutDir)" Targets="NopClear" />
     </Target>
 </Project>
