@@ -4,14 +4,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using Nop.Plugin.Widgets.DPDShipToShop;
 using Nop.Plugin.Widgets.DPDShipToShop.Models;
 using Nop.Plugin.Widgets.DPDShipToShop.Services;
 using Nop.Plugin.Widgets.DPDShipToShop.Utility;
 using Nop.Plugin.Widgets.DPDShipToShop.Model;
-using Nop.Plugin.Widgets.DPDShipToShop.Response;
 using Nop.Services;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
@@ -25,9 +23,7 @@ using Nop.Core;
 using System.Text;
 using System.Net;
 using Nop.Core.Infrastructure;
-using Nop.Services.Logging;
 using Nop.Plugin.Widgets.DPDShipToShop.Domain;
-using Microsoft.AspNetCore.Http;
 using Nop.Core.Http.Extensions;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
@@ -36,6 +32,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Nop.Core.Caching;
 using Nop.Services.Caching;
+using DpdApiErrorModel = Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel;
+using DpdPickupPointResultModel = Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel;
 
 namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 {
@@ -43,10 +41,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
     {
 
         #region Fields
-        private readonly IHttpContextFactory _httpContext;
         private readonly IStoreContext _storeContext;
         private readonly ISettingService _settingService;
-        private readonly IWebHelper _webHelper;
         private readonly IWorkContext _workContext;
         private readonly ILocalizationService _localizationService;
         private readonly INotificationService _notificationService;
@@ -65,8 +61,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
         #region Ctor
 
-        public DPDShipToShopController(IHttpContextFactory httpContext, IStoreContext storeContext,
-            ISettingService settingService, IWebHelper webHelper,
+        public DPDShipToShopController(IStoreContext storeContext,
+            ISettingService settingService,
             IWorkContext workContext, ILocalizationService localizationService,
             INotificationService notificationService,
             IPermissionService permissionService,
@@ -81,15 +77,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             IStaticCacheManager cacheKeyService,
             IDPDSessionService dpdSessionService)
         {
-            _httpContext = httpContext;
             _storeContext = storeContext;
             _settingService = settingService;
-            _webHelper = webHelper;
             _workContext = workContext;
             _localizationService = localizationService;
             _notificationService = notificationService;
             _permissionService = permissionService;
-            _settingService = settingService;
             _dpdShipToShopService = dpdShipToShopService;
             _DPDShipToShopSettings = DPDShipToShopSettings;
             _licenseService = licenseService;
@@ -104,12 +97,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         }
 
         #endregion
-        internal class PickupLocationOpenWindow
-        {
-            public string pickupLocationOpenWindowStartTime { get; set; }
-            public string pickupLocationOpenWindowEndTime { get; set; }
-            public int pickupLocationOpenWindowDay { get; set; }
-        }
 
         internal class TimeList
         {
@@ -137,8 +124,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
             IsRegisted = true;
 
-            var model = new ConfigurationModel
-            {
+                var model = new ConfigurationModel
+                {
                 PluginEnabled = _DPDShipToShopSettings.PluginEnabled,
                 UserName = _DPDShipToShopSettings.UserName,
                 Password = _DPDShipToShopSettings.Password,
@@ -222,21 +209,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 });
             }
 
-            //bool IsRegisted = await _staticCacheManager.GetAsync(_cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey), () =>
-            //{
-            //    return await _licenseService.VerifyLicense(_DPDShipToShopSettings.SerialNumber);
-            //});
-
-            //IsRegisted = true;
-
-            //if (!IsRegisted)
-            //{
-            //    return Json(new
-            //    {
-            //        success = false
-            //    });
-            //}
-
             //Updated the way we check if the plugin is regsitered.
             var cacheKey = _cacheKeyService.PrepareKeyForDefaultCache(DPDShipToShopDefaults.LicenseCacheKey);
 
@@ -253,12 +225,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 });
             }
 
-            //var logger = EngineContext.Current.Resolve<ILogger>();
-            //var dpdSettings = _settingService.LoadSetting<DPDShipToShopSettings>(_storeContext.CurrentStore.Id);
-
             var response = string.Empty;
-            var responseData = string.Empty;
-            string jsonResponse = string.Empty;
             string PostalCode = postalCode;
             string CountryCode = countryCode;
             string apiName = "DPD";
@@ -320,11 +287,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     if (NewPickUpPointsModel.data == null)
                     {
 
-                        List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel> errors = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel>();
+                        List<DpdApiErrorModel> errors = new List<DpdApiErrorModel>();
 
                         foreach (var errorItem in NewPickUpPointsModel.error)
                         {
-                            errors.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdApiErrorModel
+                            errors.Add(new DpdApiErrorModel
                             {
                                 ErrorCode = errorItem.errorCode,
                                 ErrorMessage = errorItem.errorMessage,
@@ -343,12 +310,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     }
 
 
-                    List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel> Results = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel>();
+                    List<DpdPickupPointResultModel> Results = new List<DpdPickupPointResultModel>();
 
 
                     foreach (var pickUpPoint in NewPickUpPointsModel.data.results)
                     {
-                        Results.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel
+                        Results.Add(new DpdPickupPointResultModel
                         {
                             PickupLocationCode = pickUpPoint.pickupLocation.pickupLocationCode,
                             PickupLocationOrganisation = pickUpPoint.pickupLocation.address.organisation,
@@ -404,12 +371,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         [HttpPost]
         public async Task<ActionResult> PickupPointsMap(string postalCode, string countryCode)
         {
-            var logger = EngineContext.Current.Resolve<ILogger>();
-            //var dpdSettings = _settingService.LoadSetting<DPDShipToShopSettings>(_storeContext.CurrentStore.Id);
-
             var response = string.Empty;
-            var responseData = string.Empty;
-            string jsonResponse = string.Empty;
             string PostalCode = postalCode;
             string CountryCode = countryCode;
             string apiName = "DPD";
@@ -562,12 +524,12 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                 CreatedOnUtc = DateTime.UtcNow
             };
 
-            List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel> getAllDPDPickupPointsResult = new List<Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel>();
+            List<DpdPickupPointResultModel> getAllDPDPickupPointsResult = new List<DpdPickupPointResultModel>();
 
             //Check if we have the pickupPoint in the DB
             foreach (var dpdpoint in await _dpdShipToShopService.GetAllDPDPickupPointsByLocationCodeCustomerIDAsync(dpdPickupPointModel.CustomerId))
             {
-                getAllDPDPickupPointsResult.Add(new Nop.Plugin.Widgets.DPDShipToShop.Models.DpdPickupPointResultModel
+                getAllDPDPickupPointsResult.Add(new DpdPickupPointResultModel
                 {
                     PickupLocationId = dpdpoint.Id,
                     PickupLocationCode = dpdpoint.PickupLocationCode,
@@ -634,7 +596,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The earliest weekday opening time, or null when unavailable.</returns>
         private string FilterWeekdayOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
+            var jsonString = DeserializePickupPointsResponse(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -668,7 +630,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The latest weekday closing time, or null when unavailable.</returns>
         private string FilterWeekdayClosingTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
+            var jsonString = DeserializePickupPointsResponse(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -701,7 +663,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The opening time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
+            var jsonString = DeserializePickupPointsResponse(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -734,7 +696,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The closing time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendClosingTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
+            var jsonString = DeserializePickupPointsResponse(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -766,6 +728,16 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         private async Task<string> GetLoginToken(string apiName)
         {
             return await _dpdSessionService.GetGeoSessionAsync(apiName);
+        }
+
+        /// <summary>
+        /// Deserializes the raw DPD pickup-point API JSON payload.
+        /// </summary>
+        /// <param name="stringData">The raw JSON payload.</param>
+        /// <returns>The deserialized pickup-point API response.</returns>
+        private static DpdPickupPointsApiResponse DeserializePickupPointsResponse(string stringData)
+        {
+            return JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
         }
 
         /// <summary>
