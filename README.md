@@ -38,7 +38,7 @@ This plugin is built with the following core technologies:
 - **.NET 6** as the runtime target
 - **ASP.NET Core MVC** for controllers and Razor rendering
 - **nopCommerce 4.50** plugin and widget infrastructure
-- **JavaScript and jQuery** for the checkout map interactions
+- **JavaScript, jQuery, and AJAX requests** for the checkout map interactions
 - **Google Maps JavaScript API** and optional Places autocomplete
 - **DPD REST API** for login, pickup-point lookup, and shipment operations
 - **Newtonsoft.Json** for JSON serialization and deserialization

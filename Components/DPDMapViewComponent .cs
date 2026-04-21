@@ -38,6 +38,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
         private readonly ICountryService _countryService;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStaticCacheManager _cacheKeyService;
+        private readonly IDPDSessionService _dpdSessionService;
         private readonly LicenseService _licenseService;
         public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings();
 
@@ -50,7 +51,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
             ICustomerService customerService,
             ICountryService countryService,
             IStaticCacheManager staticCacheManager,
-            IStaticCacheManager cacheKeyService)
+            IStaticCacheManager cacheKeyService,
+            IDPDSessionService dpdSessionService)
         {
             _storeContext = storeContext;
             _settingService = settingService;
@@ -62,6 +64,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
             _DPDShipToShopSettings = DPDShipToShopSettings;
             _staticCacheManager = staticCacheManager;
             _cacheKeyService = cacheKeyService;
+            _dpdSessionService = dpdSessionService;
             _licenseService = licenseService;
         }
 
@@ -155,23 +158,17 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Components
             var postalCode = billingAddress?.ZipPostalCode
                     ?? shippingAddress?.ZipPostalCode;
             
-            var DpdClient = new DpdShipToShopClient(DpdUserName, DpdPassword, dpdAccountNumber, "");
-
-
-            //Call Login as we need the login session token here on the header to continue
-            LoginResponse loginResponse = await DpdClient.LoginAsync();
-            //ShipToShopResponse ShipToShopResponse = new ShipToShopResponse();
-
             var response = string.Empty;
+            var geoSession = await _dpdSessionService.GetGeoSessionAsync();
 
-            if (!string.IsNullOrEmpty(loginResponse.data.geoSession))
+            if (!string.IsNullOrEmpty(geoSession))
             {
                 string dpdUrl = string.Format("{0}organisation/pickuplocation/?filter=nearAddress&countryCode=GB&searchPageSize=10&searchPage=1&searchCriteria=&maxDistance=10&searchAddress={1}", _DPDShipToShopSettings.DPDBaseURL, postalCode.Replace(" ", ""));
 
-                await GetURI(new Uri(dpdUrl), DpdUserName, DpdPassword, dpdAccountNumber, loginResponse.data.geoSession);
+                await GetURI(new Uri(dpdUrl), DpdUserName, DpdPassword, dpdAccountNumber, geoSession);
 
                 return response;
-            };
+            }
 
             return response;
 

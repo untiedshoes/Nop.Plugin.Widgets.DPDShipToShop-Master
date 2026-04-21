@@ -27,6 +27,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Infrastructure
             services.AddScoped<IDPDShipToShopService, DPDShipToShopService>();
             services.AddScoped<IDPDShipToShopModelFactory, DPDShipToShopModelFactory>();
             services.AddScoped<IDPDShipToShopAutomationManager, DPDShipToShopAutomationManager>();
+            services.AddScoped<IDPDSessionService, DPDSessionService>();
             services.AddScoped<LicenseService>();
 
             //override services

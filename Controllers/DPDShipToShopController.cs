@@ -62,6 +62,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly IStaticCacheManager _cacheKeyService;
+        private readonly IDPDSessionService _dpdSessionService;
         #endregion
 
         #region Ctor
@@ -80,7 +81,8 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             IStateProvinceService stateProvinceService,
             IGenericAttributeService genericAttributeService,
             IStaticCacheManager staticCacheManager,
-            IStaticCacheManager cacheKeyService)
+            IStaticCacheManager cacheKeyService,
+            IDPDSessionService dpdSessionService)
         {
             _httpContext = httpContext;
             _storeContext = storeContext;
@@ -101,6 +103,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
             _genericAttributeService = genericAttributeService;
             _staticCacheManager = staticCacheManager;
             _cacheKeyService = cacheKeyService;
+            _dpdSessionService = dpdSessionService;
 
         }
 
@@ -110,12 +113,6 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         private IDistributedCache _cache;
 
         private const int cacheExpirationInDays = 1;
-
-        private class AccessTokenItem
-        {
-            public string AccessToken { get; set; } = string.Empty;
-            public DateTime ExpiresIn { get; set; }
-        }
 
         public class Result
         {
@@ -811,27 +808,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>A DPD session token.</returns>
         private async Task<string> GetLoginToken(string apiName)
         {
-            //var logger = EngineContext.Current.Resolve<ILogger>();
-            var accessToken = await GetAccessTokenFromCacheAsync(apiName);
-
-            if (accessToken != null)
-            {
-                if (accessToken.ExpiresIn > DateTime.UtcNow)
-                {
-
-                    return accessToken.AccessToken;
-                }
-                else
-                {
-                    // remove  => NOT Needed for this cache type
-                }
-            }
-
-            // add
-            var newAccessToken = await GetLoginAsyncToken(apiName);
-            await AddAccessTokenToCacheAsync(apiName, newAccessToken);
-
-            return newAccessToken.AccessToken;
+            return await _dpdSessionService.GetGeoSessionAsync(apiName);
         }
 
         /// <summary>
