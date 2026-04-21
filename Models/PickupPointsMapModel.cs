@@ -25,11 +25,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Models
 
         public string ResponseData { get; set; }
 
-        //GETS THE API RESULT ROOTOBJECT
-        public Rootobject Rootobject { get; set; }
+        //GETS THE API RESULT OBJECT
+        public DpdPickupPointsApiResponse ApiResponse { get; set; }
     }
 
-    public class Results
+    public class DpdPickupPointGroup
     {
         public List<PickupLocation> pickupLocation { get; set; }
     }
@@ -37,7 +37,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Models
     public class PickupPointsData
     {
         public int ShipToShopId { get; set; }
-        public List<Results> results { get; set; }
+        public List<DpdPickupPointGroup> results { get; set; }
     }
 
     public class PickupLocation
@@ -49,11 +49,11 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Models
     //*----------------------------------------
 
 
-    public class Rootobject
+    public class DpdPickupPointsApiResponse
     {
 
-        public Error[] error { get; set; }
-        public Data data { get; set; }
+        public DpdPickupPointsApiError[] error { get; set; }
+        public DpdPickupPointsApiData data { get; set; }
 
         //GET THE SHIPPING METHOD NAME FROM THE CONFIG
         public string ShippingMethodName { get; set; }
@@ -73,38 +73,38 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Models
         public string ResponseData { get; set; }
     }
 
-    public class Data
+    public class DpdPickupPointsApiData
     {
-        public Result[] results { get; set; }
+        public DpdPickupPointsApiResult[] results { get; set; }
         public int totalResults { get; set; }
     }
 
-    public class Result
+    public class DpdPickupPointsApiResult
     {
-        public Pickuplocation pickupLocation { get; set; }
+        public DpdPickupLocation pickupLocation { get; set; }
         public float distance { get; set; }
-        public Addresspoint1 addressPoint { get; set; }
+        public DpdPickupPointAddressPoint addressPoint { get; set; }
     }
 
-    public class Pickuplocation
+    public class DpdPickupLocation
     {
         public string pickupLocationCode { get; set; }
         public Address address { get; set; }
         public string pickupLocationType { get; set; }
-        public Addresspoint addressPoint { get; set; }
+        public DpdPickupLocationAddressPoint addressPoint { get; set; }
         public string languageSpoken { get; set; }
         public bool disabledAccess { get; set; }
         public bool parkingAvailable { get; set; }
         public string[] geoServiceCode { get; set; }
         public string pickupLocationDirections { get; set; }
-        public Pickuplocationavailability pickupLocationAvailability { get; set; }
+        public DpdPickupLocationAvailability pickupLocationAvailability { get; set; }
         public bool openLate { get; set; }
         public bool openSaturday { get; set; }
         public bool openSunday { get; set; }
         public object shortName { get; set; }
         public object pickupLocationImageUrl { get; set; }
         public object pickupLocationLogoUrl { get; set; }
-        public Pickuplocationdriverwindow[] pickupLocationDriverWindow { get; set; }
+        public DpdPickupLocationDriverWindow[] pickupLocationDriverWindow { get; set; }
     }
 
     public class Address
@@ -119,44 +119,44 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Models
         public string countryCode { get; set; }
     }
 
-    public class Addresspoint
+    public class DpdPickupLocationAddressPoint
     {
         public decimal? latitude { get; set; }
         public decimal? longitude { get; set; }
     }
 
-    public class Pickuplocationavailability
+    public class DpdPickupLocationAvailability
     {
         public string pickupLocationActiveStart { get; set; }
         public string pickupLocationActiveEnd { get; set; }
         public string pickupLocationDeliveryStart { get; set; }
         public string pickupLocationDeliveryClosed { get; set; }
         public string pickupLocationOpeningExceptions { get; set; }
-        public Pickuplocationopenwindow[] pickupLocationOpenWindow { get; set; }
+        public DpdPickupLocationOpenWindow[] pickupLocationOpenWindow { get; set; }
         public object[] pickupLocationDownTime { get; set; }
     }
 
-    public class Pickuplocationopenwindow
+    public class DpdPickupLocationOpenWindow
     {
         public string pickupLocationOpenWindowStartTime { get; set; }
         public string pickupLocationOpenWindowEndTime { get; set; }
         public int pickupLocationOpenWindowDay { get; set; }
     }
 
-    public class Pickuplocationdriverwindow
+    public class DpdPickupLocationDriverWindow
     {
         public string pickupLocationDriverWindowStartTime { get; set; }
         public string pickupLocationDriverWindowEndTime { get; set; }
         public int pickupLocationDriverWindowDay { get; set; }
     }
 
-    public class Addresspoint1
+    public class DpdPickupPointAddressPoint
     {
         public float latitude { get; set; }
         public float longitude { get; set; }
     }
 
-    public class Error
+    public class DpdPickupPointsApiError
     {
         public string errorObj { get; set; }
         public string errorMessage { get; set; }

@@ -315,7 +315,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
 
                     //response = await result.Content.ReadAsStringAsync();
                     string stringData = response;
-                    var NewPickUpPointsModel = JsonConvert.DeserializeObject<Rootobject>(stringData);
+                    var NewPickUpPointsModel = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
 
                     if (NewPickUpPointsModel.data == null)
                     {
@@ -476,7 +476,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
                     //HttpResponseMessage response = await client.GetAsync(uri).Result;
                     //string stringData = await response.Content.ReadAsStringAsync().Result;
 
-                    var NewPickUpPointsModel = JsonConvert.DeserializeObject<Rootobject>(stringData);
+                    var NewPickUpPointsModel = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
 
 
                     if (!string.IsNullOrEmpty(PostalCode))
@@ -634,7 +634,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The earliest weekday opening time, or null when unavailable.</returns>
         private string FilterWeekdayOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
+            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -668,7 +668,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The latest weekday closing time, or null when unavailable.</returns>
         private string FilterWeekdayClosingTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
+            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -701,7 +701,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The opening time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendOpeningTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
+            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
@@ -734,7 +734,7 @@ namespace Nop.Plugin.Widgets.DPDShipToShop.Controllers
         /// <returns>The closing time for the requested weekend day, or null when unavailable.</returns>
         private string FilterWeekendClosingTimes(string stringData, int day, string pickupLocationCode)
         {
-            var jsonString = JsonConvert.DeserializeObject<Rootobject>(stringData);
+            var jsonString = JsonConvert.DeserializeObject<DpdPickupPointsApiResponse>(stringData);
             var results = jsonString.data.results.Where(x => x.pickupLocation.pickupLocationCode == pickupLocationCode).ToList();
 
             List<TimeList> Time = new List<TimeList>();
